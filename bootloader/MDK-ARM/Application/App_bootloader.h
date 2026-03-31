@@ -49,8 +49,8 @@ void App_bootloader_copy_and_jump(void);
 /*============================================================*/
 /* OTA 模块共享接口（定义在 App_bootloader.c）                  */
 /*============================================================*/
+extern uint8_t  is_valid_firmware(uint32_t addr);
 extern void     w25q64_save_meta(uint32_t size);
-extern void     erase_target_bank(void);
 extern void     copy_w25q64_to_flash(uint32_t size);
 extern void     switch_bank(void);
 

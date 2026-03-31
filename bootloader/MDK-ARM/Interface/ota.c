@@ -12,6 +12,7 @@
 /* 外部变量（定义在 usart.c） */
 extern UART_HandleTypeDef huart1;
 extern volatile uint8_t uart_recv_done;
+extern volatile uint8_t uart_error_flag;
 extern volatile uint32_t last_rec_time;
 
 /* 外部变量（定义在 App_bootloader.c） */
@@ -22,7 +23,8 @@ extern uint32_t s_target_bank;
 /*============================================================*/
 static void uart_send_str(const uint8_t *str)
 {
-    uint16_t len = strlen((const char *)str);
+    uint16_t len = 0;
+    while (str[len]) len++;
     if (len > 0) HAL_UART_Transmit(&huart1, str, len, 100);
 }
 
@@ -51,32 +53,33 @@ void OTA_Receive(void)
     Boot_StartUartIap();
 
     while (1) {
-        UART_ClearError();
+        if (uart_error_flag) {
+            uart_error_flag = 0;
+        }
 
         /* 检查是否有数据 */
         if (uart_get_data(&buf, &len)) {
             last_rec_time = HAL_GetTick();
 
             if (!started) {
-                /* 等待 '1' 启动接收（简单握手） */
-                if (len >= 1 && buf[0] == '1') {
+                /* 等待启动字符 */
+                if (len >= 1 && buf[0] == IAP_START_CHAR) {
                     started = 1;
                     write_addr = W25Q64_FW_OFFSET;
                     total_size = 0;
                     uart_send_str((const uint8_t *)"ACK\r\n");
                 }
+                memset(buf, 0, len);
                 continue;
             }
 
             /* 协议帧解析 */
             for (uint16_t i = 0; i < len; i++) {
                 if (Protocol_ProcessByte(&proto, buf[i])) {
-                    /* 完整帧接收成功 */
                     Protocol_Frame_t *frame = &proto.frame;
 
                     switch (frame->cmd) {
                         case CMD_UPDATE_START: {
-                            /* 升级开始：提取固件大小 */
                             if (frame->len >= 4) {
                                 total_size = frame->data[0] |
                                             ((uint32_t)frame->data[1] << 8) |
@@ -89,17 +92,13 @@ void OTA_Receive(void)
                         }
 
                         case CMD_UPDATE_DATA: {
-                            /* 升级数据：偏移 + 数据 */
                             if (frame->len > 4) {
                                 uint32_t offset = frame->data[0] |
                                                  ((uint32_t)frame->data[1] << 8) |
                                                  ((uint32_t)frame->data[2] << 16) |
                                                  ((uint32_t)frame->data[3] << 24);
-
                                 uint16_t data_len = frame->len - 4;
                                 uint32_t addr = W25Q64_FW_OFFSET + offset;
-
-                                /* 写入 W25Q64 */
                                 W25Q64_WriteData(addr, &frame->data[4], data_len);
                             }
                             Protocol_SendACK(frame->cmd);
@@ -107,39 +106,37 @@ void OTA_Receive(void)
                         }
 
                         case CMD_UPDATE_END: {
-                            /* 升级结束：开始烧录 */
                             uart_recv_done = 1;
                             Protocol_SendACK(frame->cmd);
                             goto OTA_COMPLETE;
                         }
 
                         default:
-                            /* 未知命令，发送NAK */
                             Protocol_SendNAK(frame->cmd);
                             break;
                     }
                 }
             }
+            memset(buf, 0, len);
         }
 
         /* 超时检测 */
-        if (started && (HAL_GetTick() - last_rec_time > OTA_IDLE_TIMEOUT_MS)) {
+        if (started && (HAL_GetTick() - last_rec_time > IAP_IDLE_TIMEOUT)) {
             uart_recv_done = 1;
             break;
         }
-        if (HAL_GetTick() - last_rec_time > OTA_TOTAL_TIMEOUT_MS) {
+        if (HAL_GetTick() - last_rec_time > IAP_TOTAL_TIMEOUT) {
             break;
         }
     }
 
 OTA_COMPLETE:
-    /* 烧录目标分区 */
     if (uart_recv_done && total_size > 0) {
         w25q64_save_meta(total_size);
-        erase_target_bank();
+        Boot_EraseFlash(s_target_bank, 8);
         copy_w25q64_to_flash(total_size);
 
-        if (Boot_IsValidFirmware(s_target_bank)) {
+        if (is_valid_firmware(s_target_bank)) {
             switch_bank();
             uart_send_str((const uint8_t *)"UPDATE_OK\r\n");
         } else {

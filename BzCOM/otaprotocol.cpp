@@ -232,3 +232,16 @@ quint16 OtaProtocol::calcCRC16(const quint8 *data, quint16 len)
     }
     return crc;
 }
+
+/*============================================================*/
+/* 辅助函数                                                   */
+/*============================================================*/
+QByteArray OtaProtocol::toBytes32(quint32 value)
+{
+    QByteArray bytes(4, 0);
+    bytes[0] = static_cast<char>((value >> 0) & 0xFF);
+    bytes[1] = static_cast<char>((value >> 8) & 0xFF);
+    bytes[2] = static_cast<char>((value >> 16) & 0xFF);
+    bytes[3] = static_cast<char>((value >> 24) & 0xFF);
+    return bytes;
+}
