@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>微软雅黑</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2" stretch="3,2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,2">
+        <item>
+         <widget class="QTextBrowser" name="textBrowser"/>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="tabWidget"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="5,2">
+        <item>
+         <widget class="QTextEdit" name="textEdit"/>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QPushButton" name="clearLog">
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+QPushButton:pressed {
+    background-color: rgba(245, 245, 247, 0.9);
+}</string>
+              </property>
+              <property name="text">
+               <string>清空日志</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="saveLog">
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+QPushButton:pressed {
+    background-color: rgba(245, 245, 247, 0.9);
+}</string>
+              </property>
+              <property name="text">
+               <string>保存日志</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_3">
+            <item>
+             <widget class="QPushButton" name="hexBtn">
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+QPushButton:pressed {
+    background-color: rgba(245, 245, 247, 0.9);
+}</string>
+              </property>
+              <property name="text">
+               <string>ASCII</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="checkBox">
+              <property name="font">
+               <font>
+                <family>微软雅黑</family>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
+ QComboBox {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 14px;
+    color: #333333;
+}
+
+/* 彻底隐藏QComboBox下拉区域：宽度设为0，无任何交互 */
+QComboBox::drop-down {
+    border: none;
+    background-color: transparent;
+    width: 0px; /* 关键：将下拉区域宽度设为0，视觉上完全消失 */
+}
+QComboBox::down-arrow {
+    image: none; /* 清空箭头图标，避免资源加载警告 */
+    width: 0px;
+    height: 0px;
+}
+
+/* 可选：QComboBox 编辑区域文字居中（兼容可编辑场景） */
+QComboBox QAbstractItemView {
+    text-align: center;
+    alignment: AlignCenter;
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>     无校验</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>校验和</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,1">
+            <property name="spacing">
+             <number>9</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="selectFile">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+QPushButton:pressed {
+    background-color: rgba(245, 245, 247, 0.9);
+}</string>
+              </property>
+              <property name="text">
+               <string>选择文件</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="ProtocolBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
+ QComboBox {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 14px;
+    color: #333333;
+}
+
+/* 彻底隐藏QComboBox下拉区域：宽度设为0，无任何交互 */
+QComboBox::drop-down {
+    border: none;
+    background-color: transparent;
+    width: 0px; /* 关键：将下拉区域宽度设为0，视觉上完全消失 */
+}
+QComboBox::down-arrow {
+    image: none; /* 清空箭头图标，避免资源加载警告 */
+    width: 0px;
+    height: 0px;
+}
+
+/* 可选：QComboBox 编辑区域文字居中（兼容可编辑场景） */
+QComboBox QAbstractItemView {
+    text-align: center;
+    alignment: AlignCenter;
+}</string>
+              </property>
+              <item>
+               <property name="text">
+                <string>     None</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>CRC16-2-2</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,1">
+            <property name="spacing">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="fileBtn">
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+QPushButton:pressed {
+    background-color: rgba(245, 245, 247, 0.9);
+}</string>
+              </property>
+              <property name="text">
+               <string>发送文件</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="sendBtn">
+              <property name="styleSheet">
+               <string notr="true">QPushButton {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #1d1d1f;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px 16px;
+}
+
+QPushButton:hover {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+QPushButton:pressed {
+    background-color: rgba(245, 245, 247, 0.9);
+}</string>
+              </property>
+              <property name="text">
+               <string>发送文本</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
