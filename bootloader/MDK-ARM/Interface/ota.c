@@ -12,7 +12,6 @@
 /* 外部变量（定义在 usart.c） */
 extern UART_HandleTypeDef huart1;
 extern volatile uint8_t uart_recv_done;
-extern volatile uint8_t uart_error_flag;
 extern volatile uint32_t last_rec_time;
 
 /* 外部变量（定义在 App_bootloader.c） */
@@ -23,8 +22,7 @@ extern uint32_t s_target_bank;
 /*============================================================*/
 static void uart_send_str(const uint8_t *str)
 {
-    uint16_t len = 0;
-    while (str[len]) len++;
+    uint16_t len = strlen((const char *)str);
     if (len > 0) HAL_UART_Transmit(&huart1, str, len, 100);
 }
 
@@ -53,9 +51,7 @@ void OTA_Receive(void)
     Boot_StartUartIap();
 
     while (1) {
-        if (uart_error_flag) {
-            uart_error_flag = 0;
-        }
+        UART_ClearError();
 
         /* 检查是否有数据 */
         if (uart_get_data(&buf, &len)) {
@@ -69,7 +65,6 @@ void OTA_Receive(void)
                     total_size = 0;
                     uart_send_str((const uint8_t *)"ACK\r\n");
                 }
-                memset(buf, 0, len);
                 continue;
             }
 
@@ -125,7 +120,6 @@ void OTA_Receive(void)
                     }
                 }
             }
-            memset(buf, 0, len);
         }
 
         /* 超时检测 */
@@ -145,7 +139,7 @@ OTA_COMPLETE:
         erase_target_bank();
         copy_w25q64_to_flash(total_size);
 
-        if (is_valid_firmware(s_target_bank)) {
+        if (Boot_IsValidFirmware(s_target_bank)) {
             switch_bank();
             uart_send_str((const uint8_t *)"UPDATE_OK\r\n");
         } else {

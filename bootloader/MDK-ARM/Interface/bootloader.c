@@ -39,6 +39,21 @@ void Boot_EraseFlash(uint32_t addr, uint16_t pages)
     HAL_FLASH_Lock();
 }
 
+void Boot_WriteFlash(uint32_t addr, const uint8_t *data, uint32_t len)
+{
+    HAL_FLASH_Unlock();
+    for (uint32_t i = 0; i + 1 < len; i += 2) {
+        uint16_t halfword = data[i] | ((uint16_t)data[i + 1] << 8);
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, addr + i, halfword);
+    }
+    /* 奇数长度：补 0 写入最后一个半字 */
+    if (len & 1) {
+        uint16_t halfword = data[len - 1];
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, addr + len - 1, halfword);
+    }
+    HAL_FLASH_Lock();
+}
+
 void Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size)
 {
     HAL_FLASH_Unlock();
@@ -52,9 +67,11 @@ void Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size)
     uint32_t err;
     HAL_FLASHEx_Erase(&erase, &err);
 
-    for (uint32_t i = 0; i < size; i += 2) {
-        uint16_t data = *(volatile uint16_t *)(src + i);
-        HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, dst + i, data);
+    uint8_t buff[256];
+    for (uint32_t off = 0; off < size; off += sizeof(buff)) {
+        uint32_t chunk = (size - off >= sizeof(buff)) ? sizeof(buff) : (size - off);
+        memcpy(buff, (const uint8_t *)(src + off), chunk);
+        Boot_WriteFlash(dst + off, buff, chunk);
     }
     HAL_FLASH_Lock();
 }
@@ -80,6 +97,23 @@ void Boot_StartUartIap(void)
     uart_double_buff.rx_len  = 0;
 
     HAL_UARTEx_ReceiveToIdle_IT(&huart1, uart_double_buff.rx_buff, BUFF_SIZE);
+}
+
+/*============================================================*/
+/* 固件校验                                                  */
+/*============================================================*/
+uint8_t Boot_IsValidFirmware(uint32_t addr)
+{
+    uint32_t stack = *(volatile uint32_t *)addr;
+    return (stack >= SRAM_STACK_BASE && stack <= SRAM_MAX);
+}
+
+/*============================================================*/
+/* UART 辅助                                                 */
+/*============================================================*/
+void UART_ClearError(void)
+{
+    uart_error_flag = 0;
 }
 
 /*============================================================*/
