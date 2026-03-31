@@ -25,7 +25,11 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,2">
         <item>
-         <widget class="QTextBrowser" name="textBrowser"/>
+         <widget class="QTextBrowser" name="textBrowser">
+          <property name="wordWrapMode">
+           <enum>QTextOption::WrapAnywhere</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QTabWidget" name="tabWidget"/>
@@ -130,6 +134,9 @@ QPushButton:pressed {
                 <family>微软雅黑</family>
                 <pointsize>-1</pointsize>
                </font>
+              </property>
+              <property name="editable">
+               <bool>false</bool>
               </property>
               <property name="styleSheet">
                <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */

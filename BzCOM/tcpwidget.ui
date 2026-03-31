@@ -45,6 +45,12 @@
            <height>32</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <family>微软雅黑</family>
+           <pointsize>-1</pointsize>
+          </font>
+         </property>
          <property name="styleSheet">
           <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
  QComboBox {
@@ -137,7 +143,7 @@ QComboBox QAbstractItemView {
          <item>
           <widget class="QLineEdit" name="portEdit1">
            <property name="text">
-            <string/>
+            <string>9999</string>
            </property>
           </widget>
          </item>
@@ -188,7 +194,7 @@ QComboBox QAbstractItemView {
          <item>
           <widget class="QLineEdit" name="portEdit2">
            <property name="text">
-            <string/>
+            <string>8888</string>
            </property>
           </widget>
          </item>

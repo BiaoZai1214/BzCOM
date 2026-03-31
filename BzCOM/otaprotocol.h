@@ -1,7 +1,6 @@
 /**
  * @file otaprotocol.h
- * @brief OTA 升级协议封装
- * @note 基于 Modbus CRC16-2-2 校验的协议帧
+ * @brief OTA 升级协议封装，基于 Modbus CRC16-2-2 校验
  */
 #ifndef OTAPROTOCOL_H
 #define OTAPROTOCOL_H
@@ -9,59 +8,39 @@
 #include <QByteArray>
 #include <QObject>
 
-/*============================================================*/
-/* 协议常量                                                   */
-/*============================================================*/
-#define PROTOCOL_HEAD_1     0x55    // 帧头字节1
-#define PROTOCOL_HEAD_2     0xAA    // 帧头字节2
+#define PROTOCOL_HEAD_1     0x55
+#define PROTOCOL_HEAD_2     0xAA
 
-/* 命令码 */
-#define CMD_HEARTBEAT       0x0001  // 心跳
-#define CMD_QUERY_STATUS    0x0002  // 查询状态
-#define CMD_UPDATE_START    0x0003  // 升级开始
-#define CMD_UPDATE_DATA     0x0004  // 升级数据
-#define CMD_UPDATE_END      0x0005  // 升级结束
-#define CMD_RESET           0x0006  // 系统复位
-#define CMD_BOOT_JUMP       0x0007  // 跳转APP
+#define CMD_HEARTBEAT       0x0001
+#define CMD_QUERY_STATUS    0x0002
+#define CMD_UPDATE_START    0x0003
+#define CMD_UPDATE_DATA     0x0004
+#define CMD_UPDATE_END      0x0005
+#define CMD_RESET           0x0006
+#define CMD_BOOT_JUMP       0x0007
 
-/* 响应码：CMD | 0x0080 = ACK, CMD | 0x00FF = NAK */
 #define CMD_ACK(cmd)        ((cmd) | 0x0080)
 #define CMD_NAK(cmd)        ((cmd) | 0x00FF)
 
-/* 协议帧固定长度 */
-#define PROTOCOL_FIXED_LEN  10      // HEAD(2) + CMD(2) + LEN(2) + RESERVE(4)
-#define PROTOCOL_CRC_LEN    2       // CRC16长度
+#define PROTOCOL_FIXED_LEN  10
+#define PROTOCOL_CRC_LEN    2
 
 class OtaProtocol
 {
 public:
     static OtaProtocol& instance();
 
-    /** @brief 构建协议帧 */
     QByteArray buildFrame(quint16 cmd, const QByteArray &data);
-
-    /** @brief 解析接收数据，提取完整帧 */
     QByteArray parseFrame(QByteArray &buffer);
-
-    /** @brief 校验CRC */
     bool verifyCRC(const QByteArray &frame);
-
-    /** @brief 从帧中提取命令码 */
     quint16 getCmd(const QByteArray &frame);
-
-    /** @brief 从帧中提取数据区 */
     QByteArray getData(const QByteArray &frame);
-
-    /** @brief 计算CRC16 (Modbus RTU) */
     quint16 calcCRC16(const quint8 *data, quint16 len);
-
-    /** @brief uint32转小端字节序 */
     static QByteArray toBytes32(quint32 value);
 
 private:
     OtaProtocol() = default;
-
     static const quint16 crc16_table[256];
 };
 
-#endif // OTAPROTOCOL_H
+#endif
