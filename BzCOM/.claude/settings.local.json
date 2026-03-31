@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /e/Code/QT/BzCOM/BzCOM -name README* -o -name .cursorrules -o -name copilot-instructions.md)",
+      "Bash(find /e/Code/QT/BzCOM/BzCOM -name *test*)",
+      "Bash(mingw32-make clean:*)",
+      "Bash(qmake BzCOM.pro)"
+    ]
+  }
+}
