@@ -6,13 +6,13 @@
 #include "app_bootloader.h"
 #include "iap.h"
 #include "ota.h"
-#include <string.h>
 
 /*============================================================*/
 /* 常量定义                                                   */
 /*============================================================*/
 #define KEY_DEBOUNCE_MS     50      /* 按键消抖时间 */
 #define KEY_WAIT_MS         3000    /* 按键等待超时 */
+#define FLASH_COPY_SIZE     FLASH_APP_SIZE /* 固件复制大小 */
 
 /*============================================================*/
 /* 全局变量                                                   */
@@ -23,9 +23,20 @@ uint32_t s_target_bank = ADDR_APP_B;   /* 目标分区（OTA/IAP 写入目标）
 
 static uint32_t s_active_bank  = ADDR_APP_A;   /* 当前激活分区 */
 
+/* W25Q64 元数据 */
+static uint8_t  s_meta[W25Q64_META_SIZE] = {0};
+static uint32_t s_w25q64_size = 0;
+
 /*============================================================*/
 /* 内部函数                                                   */
 /*============================================================*/
+
+/* 固件有效性校验：栈顶地址必须在 SRAM 范围内 */
+uint8_t is_valid_firmware(uint32_t addr)
+{
+    uint32_t stack = *(volatile uint32_t *)addr;
+    return (stack >= SRAM_STACK_BASE && stack <= SRAM_MAX);
+}
 
 /* 获取非活跃分区 */
 static uint32_t get_inactive_bank(void)
@@ -33,64 +44,56 @@ static uint32_t get_inactive_bank(void)
     return (s_active_bank == ADDR_APP_A) ? ADDR_APP_B : ADDR_APP_A;
 }
 
-/*============================================================*/
-/* W25Q64 元数据读写                                          */
-/*============================================================*/
-/* 返回值：有效固件大小，0 表示无效 */
-static uint32_t w25q64_read_meta(void)
+/* 读取 W25Q64 元数据 */
+static void w25q64_read_meta(void)
 {
-    uint8_t meta[W25Q64_META_SIZE];
-    W25Q64_ReadData(W25Q64_META_ADDR, meta, W25Q64_META_SIZE);
+    W25Q64_ReadData(W25Q64_META_ADDR, s_meta, W25Q64_META_SIZE);
 
-    uint32_t size = meta[4] | ((uint32_t)meta[5] << 8) |
-                    ((uint32_t)meta[6] << 16) | ((uint32_t)meta[7] << 24);
+    s_w25q64_size = s_meta[4] | ((uint32_t)s_meta[5] << 8) |
+                    ((uint32_t)s_meta[6] << 16) | ((uint32_t)s_meta[7] << 24);
 
-    /* 参数校验 */
-    if (size < APP_SIZE_MIN || size > FLASH_APP_SIZE) {
-        return 0;
+    if (s_w25q64_size < APP_SIZE_MIN || s_w25q64_size > FLASH_APP_SIZE) {
+        s_w25q64_size = 0;
+        return;
     }
 
-    /* 固件头校验：栈顶地址必须在 SRAM 范围内 */
+    /* 固件头校验 */
     uint8_t header[4];
     W25Q64_ReadData(W25Q64_FW_OFFSET, header, 4);
     uint32_t stack = header[0] | ((uint32_t)header[1] << 8) |
                      ((uint32_t)header[2] << 16) | ((uint32_t)header[3] << 24);
 
-    if ((stack & SRAM_STACK_MASK) != SRAM_STACK_BASE) {
-        return 0;
+    if ((stack & 0xFFFF0000) != SRAM_STACK_BASE) {
+        s_w25q64_size = 0;
     }
-
-    return size;
 }
 
+/* 保存 W25Q64 元数据 */
 void w25q64_save_meta(uint32_t size)
 {
-    uint8_t meta[W25Q64_META_SIZE];
-    memcpy(meta + 0, &W25Q64_FW_OFFSET, 4);
-    memcpy(meta + 4, &size, 4);
+    uint8_t meta[W25Q64_META_SIZE] = {
+        (uint8_t)(W25Q64_FW_OFFSET >> 0),  (uint8_t)(W25Q64_FW_OFFSET >> 8),
+        (uint8_t)(W25Q64_FW_OFFSET >> 16), (uint8_t)(W25Q64_FW_OFFSET >> 24),
+        (uint8_t)(size >> 0),              (uint8_t)(size >> 8),
+        (uint8_t)(size >> 16),             (uint8_t)(size >> 24)
+    };
     W25Q64_WriteData(W25Q64_META_ADDR, meta, W25Q64_META_SIZE);
 }
 
-/*============================================================*/
-/* 分区操作（直接调用底层接口）                                */
-/*============================================================*/
-void erase_target_bank(void)
-{
-    Boot_EraseFlash(s_target_bank, 8);
-}
-
-/* W25Q64 → Flash 分区（使用 Boot_CopyFlash 从 W25Q64 读取并写入） */
+/* W25Q64 → Flash 分区 */
 void copy_w25q64_to_flash(uint32_t size)
 {
+    HAL_FLASH_Unlock();
     uint8_t buff[256];
-    uint32_t off = 0;
+    uint32_t copied = 0;
 
-    while (off < size) {
-        uint16_t chunk = (size - off >= sizeof(buff)) ? sizeof(buff) : (size - off);
-        W25Q64_ReadData(W25Q64_FW_OFFSET + off, buff, chunk);
-        Boot_WriteFlash(s_target_bank + off, buff, chunk);
-        off += chunk;
+    while (copied < size) {
+        uint16_t len = (size - copied >= 256) ? 256 : (size - copied);
+        W25Q64_ReadData(W25Q64_FW_OFFSET + copied, buff, len);
+        Flash_WriteBuffer(s_target_bank + copied, buff, len);
+        copied += len;
     }
+    HAL_FLASH_Lock();
 }
 
 /* 切换到目标分区 */
@@ -105,14 +108,14 @@ void switch_bank(void)
 /*============================================================*/
 static void uart_iap_receive(void)
 {
-    erase_target_bank();
+    Boot_EraseFlash(s_target_bank, 8);
     IAP_Start(s_target_bank);
 
     while (!IAP_Process()) {}
 
     HAL_FLASH_Lock();
 
-    if (uart_recv_done && Boot_IsValidFirmware(s_target_bank)) {
+    if (uart_recv_done && is_valid_firmware(s_target_bank)) {
         switch_bank();
     }
 }
@@ -122,13 +125,13 @@ static void uart_iap_receive(void)
 /*============================================================*/
 static void w25q64_upgrade(void)
 {
-    uint32_t size = w25q64_read_meta();
-    if (size == 0) return;
+    w25q64_read_meta();
+    if (s_w25q64_size == 0) return;
 
-    erase_target_bank();
-    copy_w25q64_to_flash(size);
+    Boot_EraseFlash(s_target_bank, 8);
+    copy_w25q64_to_flash(s_w25q64_size);
 
-    if (Boot_IsValidFirmware(s_target_bank)) {
+    if (is_valid_firmware(s_target_bank)) {
         switch_bank();
     }
 }
@@ -177,9 +180,9 @@ void App_bootloader_check_update(void)
     }
 
     /* 活跃区固件无效时尝试备用区 */
-    if (g_boot_mode == MODE_BOOT_NO_UPDATE && !Boot_IsValidFirmware(s_active_bank)) {
+    if (g_boot_mode == MODE_BOOT_NO_UPDATE && !is_valid_firmware(s_active_bank)) {
         uint32_t alt = get_inactive_bank();
-        if (Boot_IsValidFirmware(alt)) {
+        if (is_valid_firmware(alt)) {
             s_active_bank = alt;
         }
     }
@@ -250,6 +253,6 @@ void App_bootloader_copy_and_jump(void)
         return;
     }
 
-    Boot_CopyFlash(s_active_bank, ADDR_APP_RUN, FLASH_APP_SIZE);
+    Boot_CopyFlash(s_active_bank, ADDR_APP_RUN, FLASH_COPY_SIZE);
     Boot_JumpToApp(ADDR_APP_RUN);
 }

@@ -11,13 +11,15 @@ SOURCES += \
     mainwindow.cpp \
     tcpwidget.cpp \
     uartwidget.cpp \
-    otaprotocol.cpp
+    otaprotocol.cpp \
+    otacontroller.cpp
 
 HEADERS += \
     mainwindow.h \
     tcpwidget.h \
     uartwidget.h \
-    otaprotocol.h
+    otaprotocol.h \
+    otacontroller.h
 
 FORMS += \
     mainwindow.ui \

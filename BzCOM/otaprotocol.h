@@ -37,54 +37,30 @@ class OtaProtocol
 public:
     static OtaProtocol& instance();
 
-    /**
-     * @brief 构建协议帧
-     * @param cmd 命令码
-     * @param data 数据区
-     * @return 完整的协议帧
-     */
+    /** @brief 构建协议帧 */
     QByteArray buildFrame(quint16 cmd, const QByteArray &data);
 
-    /**
-     * @brief 解析接收数据，提取完整帧
-     * @param buffer 接收缓冲（会被修改）
-     * @return 完整帧数据，空表示不完整
-     */
+    /** @brief 解析接收数据，提取完整帧 */
     QByteArray parseFrame(QByteArray &buffer);
 
-    /**
-     * @brief 校验CRC
-     * @param frame 完整帧数据
-     * @return true=校验通过
-     */
+    /** @brief 校验CRC */
     bool verifyCRC(const QByteArray &frame);
 
-    /**
-     * @brief 从帧中提取命令码
-     * @param frame 完整帧
-     * @return 命令码
-     */
+    /** @brief 从帧中提取命令码 */
     quint16 getCmd(const QByteArray &frame);
 
-    /**
-     * @brief 从帧中提取数据区
-     * @param frame 完整帧
-     * @return 数据区
-     */
+    /** @brief 从帧中提取数据区 */
     QByteArray getData(const QByteArray &frame);
 
-    /**
-     * @brief 计算CRC16 (Modbus RTU)
-     * @param data 数据
-     * @param len 长度
-     * @return CRC16值
-     */
+    /** @brief 计算CRC16 (Modbus RTU) */
     quint16 calcCRC16(const quint8 *data, quint16 len);
+
+    /** @brief uint32转小端字节序 */
+    static QByteArray toBytes32(quint32 value);
 
 private:
     OtaProtocol() = default;
 
-    // CRC16查表法
     static const quint16 crc16_table[256];
 };
 

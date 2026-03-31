@@ -16,6 +16,7 @@ static uint8_t  s_iap_done     = 0;
 
 /* 外部变量 */
 extern volatile uint8_t uart_recv_done;
+extern volatile uint8_t uart_error_flag;
 extern volatile uint32_t last_rec_time;
 
 /*============================================================*/
@@ -36,24 +37,30 @@ uint8_t IAP_Process(void)
 {
     if (s_iap_done) return 1;
 
-    UART_ClearError();
+    if (uart_error_flag) {
+        uart_error_flag = 0;
+    }
 
     uint8_t *buf;
     uint16_t len;
     if (uart_get_data(&buf, &len)) {
         last_rec_time = HAL_GetTick();
 
-        /* 收到 '1' 启动接收 */
-        if (s_flash_offset == 0 && len >= 1 && buf[0] == '1') {
+        /* 收到启动字符 */
+        if (s_flash_offset == 0 && len >= 1 && buf[0] == IAP_START_CHAR) {
             s_flash_offset = 1;
         }
-        /* 已启动，写入 Flash */
+        /* 已启动，写 Flash */
         else if (s_flash_offset > 0) {
             if (s_total_len + len <= FLASH_APP_SIZE) {
-                Boot_WriteFlash(s_target_addr + s_total_len, buf, len);
+                HAL_FLASH_Unlock();
+                Flash_WriteBuffer(s_target_addr + s_total_len, buf, len);
+                HAL_FLASH_Lock();
                 s_total_len += len;
             }
         }
+
+        memset(buf, 0, len);
     }
 
     /* 空闲超时 → 传输结束 */

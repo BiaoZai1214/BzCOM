@@ -1,15 +1,12 @@
 /**
  * @file iap.h
  * @brief UART IAP 升级接口
+ * @note 超时常量已迁移到 bootloader.h
  */
 #ifndef __IAP_H__
 #define __IAP_H__
 
 #include <stdint.h>
-
-/* IAP 超时配置 */
-#define IAP_IDLE_TIMEOUT   2000    /* 空闲超时 2 秒 */
-#define IAP_TOTAL_TIMEOUT  10000   /* 总超时 10 秒 */
 
 /**
  * @brief 启动 UART IAP 接收
