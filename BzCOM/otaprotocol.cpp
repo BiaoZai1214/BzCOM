@@ -1,13 +1,10 @@
 /**
- * @file otaprotocol.cpp
- * @brief OTA 升级协议实现
- * @note 基于 Modbus CRC16-2-2 校验的协议帧
+ * @file  otaprotocol.cpp
+ * @brief OTA 升级协议实现，基于 Modbus CRC16-2-2 校验
  */
 #include "otaprotocol.h"
 
-/*============================================================*/
-/* Modbus CRC16 查表法                                       */
-/*============================================================*/
+/* Modbus CRC16 查表法 */
 const quint16 OtaProtocol::crc16_table[256] = {
     0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
     0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -43,199 +40,121 @@ const quint16 OtaProtocol::crc16_table[256] = {
     0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
 };
 
-/*============================================================*/
-/* 单例模式                                                   */
-/*============================================================*/
 OtaProtocol &OtaProtocol::instance()
 {
-    static OtaProtocol instance;
-    return instance;
+    static OtaProtocol inst;
+    return inst;
 }
 
-/*============================================================*/
-/* 构建协议帧                                                 */
-/*============================================================*/
 /**
- * 帧格式:
- * +--------+--------+--------+----------+---------+----------+---------+
- * |  帧头   |  命令   |  长度  |  数据区   |  保留    |  CRC16  |
- * | 0x55AA |  CMD   |  LEN   |   DATA   | 0x0000  | CRC16   |
- * +--------+--------+--------+----------+---------+----------+---------+
- *   2B       2B       2B       N          4B        2B
- *
- * CRC16计算范围: CMD(2B) + LEN(2B) + DATA(NB) + RESERVE(4B) = LEN + 6字节
+ * 帧格式: HEAD(0x55AA) + CMD(2B) + LEN(2B) + DATA(N) + RESERVE(4B) + CRC16(2B)
+ * CRC计算范围: CMD + LEN + DATA + RESERVE
  */
 QByteArray OtaProtocol::buildFrame(quint16 cmd, const QByteArray &data)
 {
     QByteArray frame;
     quint16 len = data.size();
 
-    // 帧头
     frame.reserve(2 + 2 + 2 + len + 4 + 2);
+
+    /* 帧头 */
     frame.append(static_cast<char>(PROTOCOL_HEAD_1));
     frame.append(static_cast<char>(PROTOCOL_HEAD_2));
 
-    // 命令码 (小端序)
+    /* 命令码、长度 (小端序) */
     frame.append(static_cast<char>(cmd & 0xFF));
     frame.append(static_cast<char>((cmd >> 8) & 0xFF));
-
-    // 长度 (小端序)
     frame.append(static_cast<char>(len & 0xFF));
     frame.append(static_cast<char>((len >> 8) & 0xFF));
 
-    // 数据区
+    /* 数据区 + 保留字段(4B全0) */
     frame.append(data);
+    frame.append("\x00\x00\x00\x00", 4);
 
-    // 保留字段 (4字节全0)
-    frame.append(static_cast<char>(0x00));
-    frame.append(static_cast<char>(0x00));
-    frame.append(static_cast<char>(0x00));
-    frame.append(static_cast<char>(0x00));
-
-    // CRC16计算: 从LEN到RESERVE结束，共(len + 6)字节
-    // 即: CMD(2B) + LEN(2B) + DATA(NB) + RESERVE(4B)
-    quint16 crc = calcCRC16(reinterpret_cast<const quint8 *>(frame.constData() + 2),
-                            len + 6);
-
-    // CRC16 (小端序)
+    /* CRC16 */
+    quint16 crc = calcCRC16(reinterpret_cast<const quint8 *>(frame.constData() + 2), len + 6);
     frame.append(static_cast<char>(crc & 0xFF));
     frame.append(static_cast<char>((crc >> 8) & 0xFF));
 
     return frame;
 }
 
-/*============================================================*/
-/* 解析协议帧                                                 */
-/*============================================================*/
 /**
- * @brief 从接收缓冲中提取完整帧
- * @param buffer 接收缓冲（会被修改，提取后的残留在buffer中）
- * @return 完整帧数据，空表示不完整
+ * @brief 解析协议帧，从接收缓冲中提取完整帧
+ * @param buffer 接收缓冲（会被修改）
+ * @return 完整帧，空表示数据不完整
  */
 QByteArray OtaProtocol::parseFrame(QByteArray &buffer)
 {
-    // 需要至少10字节才能解析 (HEAD + CMD + LEN + RESERVE + CRC)
     while (buffer.size() >= PROTOCOL_FIXED_LEN + PROTOCOL_CRC_LEN) {
-        // 查找帧头 0x55 0xAA
+        /* 查找帧头 */
         int headPos = buffer.indexOf(PROTOCOL_HEAD_1);
-        if (headPos < 0 || headPos + 1 >= buffer.size()) {
-            // 没有找到帧头，清空缓冲
-            buffer.clear();
-            break;
-        }
-
-        // 检查帧头第二个字节
+        if (headPos < 0 || headPos + 1 >= buffer.size()) { buffer.clear(); break; }
         if (static_cast<quint8>(buffer[headPos + 1]) != PROTOCOL_HEAD_2) {
-            // 帧头不匹配，删除第一个字节继续查找
             buffer.remove(0, headPos + 1);
             continue;
         }
 
-        // 确认有足够的字节读取长度
-        if (headPos + 4 >= buffer.size()) {
-            // 数据不完整，等待更多数据
-            break;
-        }
+        if (headPos + 4 >= buffer.size()) break;
 
-        // 提取长度 (小端序)
-        quint16 dataLen = static_cast<quint8>(buffer[headPos + 3]) |
-                         (static_cast<quint8>(buffer[headPos + 4]) << 8);
-
-        // 计算完整帧长度: HEAD(2) + CMD(2) + LEN(2) + DATA(N) + RESERVE(4) + CRC(2)
+        /* 提取长度 */
+        quint16 dataLen = static_cast<quint8>(buffer[headPos + 3]) | (static_cast<quint8>(buffer[headPos + 4]) << 8);
         quint16 frameLen = 2 + 2 + 2 + dataLen + 4 + 2;
 
-        if (buffer.size() < headPos + frameLen) {
-            // 数据不完整，等待更多数据
-            break;
-        }
+        if (buffer.size() < headPos + frameLen) break;
 
-        // 提取完整帧
         QByteArray frame = buffer.mid(headPos, frameLen);
-
-        // 移除已处理的数据
         buffer.remove(0, headPos + frameLen);
 
-        // 验证CRC
-        if (verifyCRC(frame)) {
-            return frame;
-        }
+        if (verifyCRC(frame)) return frame;
 
-        // CRC校验失败，删除帧头继续查找
+        /* CRC失败，跳过帧头继续查找 */
         buffer.remove(0, headPos + 2);
     }
-
     return QByteArray();
 }
 
-/*============================================================*/
-/* CRC校验                                                    */
-/*============================================================*/
 /**
  * @brief 校验CRC
- * @param frame 完整帧
- * @return true=校验通过
  */
 bool OtaProtocol::verifyCRC(const QByteArray &frame)
 {
-    if (frame.size() < PROTOCOL_FIXED_LEN + PROTOCOL_CRC_LEN) {
-        return false;
-    }
+    if (frame.size() < PROTOCOL_FIXED_LEN + PROTOCOL_CRC_LEN) return false;
 
-    // 提取接收到的CRC (最后2字节，小端序)
-    quint16 rxCrc = static_cast<quint8>(frame[frame.size() - 2]) |
-                   (static_cast<quint8>(frame[frame.size() - 1]) << 8);
-
-    // 提取数据长度
+    quint16 rxCrc = static_cast<quint8>(frame[frame.size() - 2]) | (static_cast<quint8>(frame[frame.size() - 1]) << 8);
     quint16 dataLen = static_cast<quint8>(frame[3]) | (static_cast<quint8>(frame[4]) << 8);
-
-    // 计算CRC: 从CMD到RESERVE结束，共(len + 6)字节
-    // 即: CMD(2B) + LEN(2B) + DATA(NB) + RESERVE(4B)
-    quint16 calcCrc = calcCRC16(reinterpret_cast<const quint8 *>(frame.constData() + 2),
-                                dataLen + 6);
+    quint16 calcCrc = calcCRC16(reinterpret_cast<const quint8 *>(frame.constData() + 2), dataLen + 6);
 
     return rxCrc == calcCrc;
 }
 
-/*============================================================*/
-/* 提取命令码                                                 */
-/*============================================================*/
 quint16 OtaProtocol::getCmd(const QByteArray &frame)
 {
     if (frame.size() < 4) return 0;
     return static_cast<quint8>(frame[2]) | (static_cast<quint8>(frame[3]) << 8);
 }
 
-/*============================================================*/
-/* 提取数据区                                                 */
-/*============================================================*/
 QByteArray OtaProtocol::getData(const QByteArray &frame)
 {
     if (frame.size() < PROTOCOL_FIXED_LEN) return QByteArray();
-
-    // 提取数据长度
     quint16 dataLen = static_cast<quint8>(frame[3]) | (static_cast<quint8>(frame[4]) << 8);
-
-    // 数据区从第6字节开始
     if (frame.size() < 6 + dataLen) return QByteArray();
-
     return frame.mid(6, dataLen);
 }
 
-/*============================================================*/
-/* CRC16计算 (Modbus RTU查表法)                               */
-/*============================================================*/
+/**
+ * @brief CRC16计算 (Modbus RTU查表法)
+ */
 quint16 OtaProtocol::calcCRC16(const quint8 *data, quint16 len)
 {
     quint16 crc = 0xFFFF;
-    while (len--) {
-        crc = (crc >> 8) ^ crc16_table[(crc ^ *data++) & 0xFF];
-    }
+    while (len--) crc = (crc >> 8) ^ crc16_table[(crc ^ *data++) & 0xFF];
     return crc;
 }
 
-/*============================================================*/
-/* 辅助函数                                                   */
-/*============================================================*/
+/**
+ * @brief uint32转小端字节序
+ */
 QByteArray OtaProtocol::toBytes32(quint32 value)
 {
     QByteArray bytes(4, 0);

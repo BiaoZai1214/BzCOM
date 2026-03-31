@@ -30,7 +30,7 @@
     <number>5</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,5">
      <property name="leftMargin">
       <number>20</number>
      </property>
@@ -52,6 +52,12 @@
      </item>
      <item>
       <widget class="QComboBox" name="bandRateBox">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -63,6 +69,12 @@
          <width>100</width>
          <height>32</height>
         </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>-1</pointsize>
+        </font>
        </property>
        <property name="styleSheet">
         <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
@@ -108,7 +120,7 @@ QLineEdit:focus, QComboBox:focus {
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="2,5">
      <property name="leftMargin">
       <number>20</number>
      </property>
@@ -141,6 +153,12 @@ QLineEdit:focus, QComboBox:focus {
          <width>100</width>
          <height>32</height>
         </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>-1</pointsize>
+        </font>
        </property>
        <property name="styleSheet">
         <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
@@ -196,7 +214,7 @@ QLineEdit:focus, QComboBox:focus {
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="2,5">
      <property name="leftMargin">
       <number>20</number>
      </property>
@@ -229,6 +247,12 @@ QLineEdit:focus, QComboBox:focus {
          <width>100</width>
          <height>32</height>
         </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>-1</pointsize>
+        </font>
        </property>
        <property name="styleSheet">
         <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
@@ -289,7 +313,7 @@ QLineEdit:focus, QComboBox:focus {
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="2,5">
      <property name="spacing">
       <number>7</number>
      </property>
@@ -325,6 +349,12 @@ QLineEdit:focus, QComboBox:focus {
          <width>100</width>
          <height>32</height>
         </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+         <pointsize>-1</pointsize>
+        </font>
        </property>
        <property name="styleSheet">
         <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
