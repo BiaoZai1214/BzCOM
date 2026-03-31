@@ -44,9 +44,12 @@
 /*============================================================*/
 uint8_t Boot_JumpToApp(uint32_t addr);
 void    Boot_EraseFlash(uint32_t addr, uint16_t pages);
+void    Boot_WriteFlash(uint32_t addr, const uint8_t *data, uint32_t len);
 void    Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size);
 uint32_t Boot_GetActiveBank(void);
 void    Boot_SetActiveBank(uint32_t addr);
 void    Boot_StartUartIap(void);
+uint8_t Boot_IsValidFirmware(uint32_t addr);
+void    UART_ClearError(void);
 
 #endif
