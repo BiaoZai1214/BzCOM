@@ -1,0 +1,39 @@
+# Qt build output
+build/
+.qtcreator/
+*.pro.user*
+*.autosave
+
+# Compiled files
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+*.lib
+
+# Qt generated
+moc_*.cpp
+ui_*.h
+Makefile*
+*.make
+
+# IDE
+*.user
+*.layout
+*.撤退*
+
+# Bootloader build output (MDK-ARM)
+MDK-ARM/1.bootloader/*.o
+MDK-ARM/1.bootloader/*.axf
+MDK-ARM/1.bootloader/*.axf.bin
+MDK-ARM/1.bootloader/*.crf
+MDK-ARM/1.bootloader/*.dep
+MDK-ARM/1.bootloader/*.build_log.htm
+MDK-ARM/1.bootloader/*.htm
+MDK-ARM/1.bootloader/*.map
+
+# Base project build output
+Base/Listings/
+Base/Objects/
+Base/*.uvguix.*

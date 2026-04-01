@@ -19,6 +19,9 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentFilePath()
 {
     ui->setupUi(this);
+
+    setWindowTitle("BzCOM 标仔IAP调试工具 V1.0");
+
     ui->tabWidget->insertTab(0, m_uartWidget, tr("串口"));
     ui->tabWidget->insertTab(1, m_tcpWidget,  tr("TCP"));
 
