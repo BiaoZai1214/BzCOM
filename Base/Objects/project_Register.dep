@@ -1,170 +1,0 @@
-Dependencies for Project 'project', Target 'Register': (DO NOT MODIFY !)
-CompilerVersion: 5060960::V5.06 update 7 (build 960)::.\arm5_compiler
-F (.\Start\core_cm3.c)(0x4C0C587E)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\core_cm3.o --omf_browse .\objects\core_cm3.crf --depend .\objects\core_cm3.d)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-F (.\Start\core_cm3.h)(0x4D523B58)()
-F (.\Start\startup_stm32f10x_md.s)(0x4D783CD2)(--cpu Cortex-M3 -g --apcs=interwork --pd "__MICROLIB SETA 1"-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"--pd "__UVISION_VERSION SETA 542" --pd "STM32F10X_MD SETA 1"--list .\listings\startup_stm32f10x_md.lst --xref -o .\objects\startup_stm32f10x_md.o --depend .\objects\startup_stm32f10x_md.d)
-F (.\Start\stm32f10x.h)(0x4D783CB4)()
-F (.\Start\system_stm32f10x.c)(0x4D783CB0)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\system_stm32f10x.o --omf_browse .\objects\system_stm32f10x.crf --depend .\objects\system_stm32f10x.d)
-I (Start\stm32f10x.h)(0x4D783CB4)
-I (Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Start\system_stm32f10x.h)(0x4D783CAA)()
-F (.\User\main.c)(0x69CA916D)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\Hardware\USART\usart.h)(0x69C5FAEB)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdio.h)(0x668F49D8)
-I (.\Hardware\LED\led.h)(0x69C605F9)
-I (User\Delay.h)(0x695D0F89)
-F (.\User\Delay.c)(0x696402C5)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\delay.o --omf_browse .\objects\delay.crf --depend .\objects\delay.d)
-I (User\Delay.h)(0x695D0F89)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\User\Timer.c)(0x69C7FA6B)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\timer.o --omf_browse .\objects\timer.crf --depend .\objects\timer.d)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (User\Timer.h)(0x69C7FA6B)
-I (.\Hardware\LED\led.h)(0x69C605F9)
-F (.\Hardware\LED\led.c)(0x69C60606)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\led.o --omf_browse .\objects\led.crf --depend .\objects\led.d)
-I (Hardware\LED\led.h)(0x69C605F9)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\LED\led.h)(0x69C605F9)()
-F (.\Hardware\KEY\key.c)(0x69C61649)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\key.o --omf_browse .\objects\key.crf --depend .\objects\key.d)
-I (Hardware\KEY\KEY.h)(0x69C61649)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\KEY\key.h)(0x69C61649)()
-F (.\Hardware\OLED\Font.c)(0x695E24BA)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\font.o --omf_browse .\objects\font.crf --depend .\objects\font.d)
-I (Hardware\OLED\font.h)(0x695A7757)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\string.h)(0x668F49D6)
-F (.\Hardware\OLED\Font.h)(0x695A7757)()
-F (.\Hardware\OLED\oled.c)(0x6966F7FD)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\oled.o --omf_browse .\objects\oled.crf --depend .\objects\oled.d)
-I (Hardware\OLED\OLED.h)(0x6966F797)
-I (Hardware\OLED\font.h)(0x695A7757)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\string.h)(0x668F49D6)
-I (.\Hardware\IIC\SoftI2C.h)(0x696706D3)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\User\Delay.h)(0x695D0F89)
-I (.\Hardware\IIC\HardI2C.h)(0x6966F73F)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdlib.h)(0x668F49D6)
-F (.\Hardware\OLED\oled.h)(0x6966F797)()
-F (.\Hardware\USART\usart.c)(0x69C5FBF8)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\usart.o --omf_browse .\objects\usart.crf --depend .\objects\usart.d)
-I (Hardware\USART\usart.h)(0x69C5FAEB)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdio.h)(0x668F49D8)
-F (.\Hardware\USART\usart.h)(0x69C5FAEB)()
-F (.\Hardware\IIC\HardI2C.c)(0x6967173B)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\hardi2c.o --omf_browse .\objects\hardi2c.crf --depend .\objects\hardi2c.d)
-I (Hardware\IIC\HardI2C.h)(0x6966F73F)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\IIC\HardI2C.h)(0x6966F73F)()
-F (.\Hardware\IIC\SoftI2C.c)(0x69673DE7)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\softi2c.o --omf_browse .\objects\softi2c.crf --depend .\objects\softi2c.d)
-I (Hardware\IIC\SoftI2C.h)(0x696706D3)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\User\Delay.h)(0x695D0F89)
-F (.\Hardware\IIC\SoftI2C.h)(0x696706D3)()
-F (.\Hardware\TIM\tim1.c)(0x696DDFAC)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\tim1.o --omf_browse .\objects\tim1.crf --depend .\objects\tim1.d)
-I (Hardware\TIM\tim1.h)(0x69682A85)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\Hardware\USART\usart.h)(0x69C5FAEB)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdio.h)(0x668F49D8)
-I (.\Hardware\LED\led.h)(0x69C605F9)
-F (.\Hardware\TIM\tim3.c)(0x69658D9E)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\tim3.o --omf_browse .\objects\tim3.crf --depend .\objects\tim3.d)
-I (Hardware\TIM\TIM3.h)(0x69680966)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\TIM\HCSR04.c)(0x696DDFAC)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\hcsr04.o --omf_browse .\objects\hcsr04.crf --depend .\objects\hcsr04.d)
-I (Hardware\TIM\HCSR04.h)(0x6968283A)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\User\Delay.h)(0x695D0F89)
-I (Hardware\TIM\tim1.h)(0x69682A85)
-I (.\Hardware\USART\usart.h)(0x69C5FAEB)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdio.h)(0x668F49D8)
-I (.\Hardware\LED\led.h)(0x69C605F9)
-F (.\Hardware\TIM\MHSS.c)(0x69665908)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\mhss.o --omf_browse .\objects\mhss.crf --depend .\objects\mhss.d)
-I (Hardware\TIM\MHSS.h)(0x69664ECF)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\DMA\dma.c)(0x696D7D84)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\dma.o --omf_browse .\objects\dma.crf --depend .\objects\dma.d)
-I (Hardware\DMA\dma.h)(0x6969A9F5)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\Hardware\USART\usart.h)(0x69C5FAEB)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdio.h)(0x668F49D8)
-F (.\Hardware\DMA\dma.h)(0x6969A9F5)()
-F (.\Hardware\ADC\adc_dma.c)(0x696C849A)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\adc_dma.o --omf_browse .\objects\adc_dma.crf --depend .\objects\adc_dma.d)
-I (Hardware\ADC\adc_dma.h)(0x696B2728)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\ADC\adc.c)(0x696B1198)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\adc.o --omf_browse .\objects\adc.crf --depend .\objects\adc.d)
-I (Hardware\ADC\adc.h)(0x696B13F0)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-F (.\Hardware\SPI\softSPI.c)(0x699CA324)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\softspi.o --omf_browse .\objects\softspi.crf --depend .\objects\softspi.d)
-I (Hardware\SPI\softSPI.h)(0x699CA2E9)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\User\Delay.h)(0x695D0F89)
-F (.\Hardware\SPI\hardSPI.c)(0x698DA75A)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\hardspi.o --omf_browse .\objects\hardspi.crf --depend .\objects\hardspi.d)
-I (Hardware\SPI\hardSPI.h)(0x699CA59A)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (.\Hardware\LCD\lcd_init.h)(0x698DE9B9)
-F (.\Hardware\SPI\w25q64.c)(0x69C8BA4D)(--c99 -c --cpu Cortex-M3 -D__MICROLIB -g -O1 --apcs=interwork --split_sections -I .\Start -I .\User -I .\Hardware\LED -I .\Hardware\KEY -I .\Hardware\OLED -I .\Hardware\USART -I .\Hardware\IIC -I .\Hardware\TIM -I .\Hardware\DMA -I .\Hardware\ADC -I .\Hardware\SPI -I .\Hardware\LCD-I"E:\Software\Keil MDK\packs\Keil\STM32F1xx_DFP\2.2.0\Device\Include"-D__UVISION_VERSION="542" -DSTM32F10X_MD -DSTM32F10X_MD-o .\objects\w25q64.o --omf_browse .\objects\w25q64.crf --depend .\objects\w25q64.d)
-I (Hardware\SPI\w25q64.h)(0x69C8BA4D)
-I (.\Start\stm32f10x.h)(0x4D783CB4)
-I (.\Start\core_cm3.h)(0x4D523B58)
-I (E:\Software\Keil MDK\ARM\arm5_compiler\include\stdint.h)(0x668F49D8)
-I (.\Start\system_stm32f10x.h)(0x4D783CAA)
-I (Hardware\SPI\softSPI.h)(0x699CA2E9)
-I (.\User\Delay.h)(0x695D0F89)
-I (Hardware\SPI\hardSPI.h)(0x699CA59A)
-I (.\Hardware\LCD\lcd_init.h)(0x698DE9B9)
-I (Hardware\SPI\w25q64_ins.h)(0x696C8A6F)
-F (.\Hardware\SPI\w25q64.h)(0x69C8BA4D)()
-F (.\Hardware\SPI\w25q64_ins.h)(0x696C8A6F)()
