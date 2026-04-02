@@ -28,7 +28,7 @@ void OTAController::startUpdate(const QString &filePath, CheckMode mode)
     if (m_totalSize == 0) { m_file.close(); emit otaFinished(false, "文件为空"); return; }
 
     QFileInfo fi(filePath);
-    emit progress(QString("--- 开始发送 (%1) ---").arg(mode == CHECK_NONE ? "无校验" : "CRC16协议"), 0);
+    emit progress(QString("--- 开始发送 (%1) ---").arg(mode == CHECK_NONE ? "无协议" : "CRC16协议"), 0);
     emit progress(QString("文件: %1, 大小: %2 字节").arg(fi.fileName()).arg(m_totalSize), 0);
 
     if (mode == CHECK_NONE) { sendNoCheck(); return; }
@@ -72,9 +72,9 @@ void OTAController::onTimeout()
 {
     const char *msg;
     switch (m_state) {
-        case STATE_START_WAIT: msg = "等待START响应超时"; break;
-        case STATE_DATA_WAIT:  msg = "等待DATA响应超时"; break;
-        case STATE_END_WAIT:   msg = "等待END响应超时"; break;
+        case STATE_START_WAIT: msg = "等待起始信号响应超时"; break;
+        case STATE_DATA_WAIT:  msg = "等待数据帧响应超时"; break;
+        case STATE_END_WAIT:   msg = "等待结束信号响应超时"; break;
         default: return;
     }
     emit otaFinished(false, msg);
@@ -85,7 +85,7 @@ void OTAController::sendStartFrame()
 {
     QByteArray frame = OtaProtocol::instance().buildFrame(CMD_UPDATE_START, OtaProtocol::toBytes32(m_totalSize));
     emit sendData(frame);
-    emit progress(QString("→ 发送START (总大小=%1)").arg(m_totalSize), 1);
+    emit progress(QString("→ 发送START").arg(m_totalSize), 1);
     m_state = STATE_START_WAIT;
     m_timer.start(TIMEOUT_MS);
 }
@@ -105,7 +105,7 @@ void OTAController::sendNextPacket()
     payload.append(m_lastBuf);
     QByteArray frame = OtaProtocol::instance().buildFrame(CMD_UPDATE_DATA, payload);
     emit sendData(frame);
-    emit progress(QString("→ 第%1包 (偏移=%2, 大小=%3)").arg(m_pktNum).arg(offset).arg(m_lastBuf.size()), 1);
+    emit progress(QString("→ 第%1包 (偏移：%2, 大小：%3)").arg(m_pktNum).arg(offset).arg(m_lastBuf.size()), 1);
 
     m_state = STATE_DATA_WAIT;
     m_timer.start(TIMEOUT_MS);

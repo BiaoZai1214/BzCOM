@@ -66,6 +66,7 @@ public:
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         textBrowser = new QTextBrowser(centralwidget);
         textBrowser->setObjectName(QString::fromUtf8("textBrowser"));
+        textBrowser->setWordWrapMode(QTextOption::WrapAnywhere);
 
         horizontalLayout->addWidget(textBrowser);
 
@@ -166,6 +167,7 @@ public:
         checkBox->addItem(QString());
         checkBox->setObjectName(QString::fromUtf8("checkBox"));
         checkBox->setFont(font);
+        checkBox->setEditable(false);
         checkBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 " QComboBox {\n"
 "    background-color: #ffffff;\n"

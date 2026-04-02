@@ -69,8 +69,16 @@ public:
         bandRateBox->addItem(QString());
         bandRateBox->addItem(QString());
         bandRateBox->setObjectName(QString::fromUtf8("bandRateBox"));
+        QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(bandRateBox->sizePolicy().hasHeightForWidth());
+        bandRateBox->setSizePolicy(sizePolicy1);
         bandRateBox->setMinimumSize(QSize(0, 0));
         bandRateBox->setMaximumSize(QSize(100, 32));
+        QFont font;
+        font.setFamily(QString::fromUtf8("\345\276\256\350\275\257\351\233\205\351\273\221"));
+        bandRateBox->setFont(font);
         bandRateBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 "QLineEdit, QComboBox {\n"
 "    background-color: #ffffff;\n"
@@ -102,6 +110,8 @@ public:
 
         horizontalLayout_2->addWidget(bandRateBox);
 
+        horizontalLayout_2->setStretch(0, 2);
+        horizontalLayout_2->setStretch(1, 5);
 
         verticalLayout_2->addLayout(horizontalLayout_2);
 
@@ -123,6 +133,7 @@ public:
         dataBitBox->setObjectName(QString::fromUtf8("dataBitBox"));
         dataBitBox->setMinimumSize(QSize(95, 0));
         dataBitBox->setMaximumSize(QSize(100, 32));
+        dataBitBox->setFont(font);
         dataBitBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 "QLineEdit, QComboBox {\n"
 "    background-color: #ffffff;\n"
@@ -154,6 +165,8 @@ public:
 
         horizontalLayout_3->addWidget(dataBitBox);
 
+        horizontalLayout_3->setStretch(0, 2);
+        horizontalLayout_3->setStretch(1, 5);
 
         verticalLayout_2->addLayout(horizontalLayout_3);
 
@@ -176,6 +189,7 @@ public:
         checkBitBox->setObjectName(QString::fromUtf8("checkBitBox"));
         checkBitBox->setMinimumSize(QSize(95, 0));
         checkBitBox->setMaximumSize(QSize(100, 32));
+        checkBitBox->setFont(font);
         checkBitBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 "QLineEdit, QComboBox {\n"
 "    background-color: #ffffff;\n"
@@ -207,6 +221,8 @@ public:
 
         horizontalLayout_4->addWidget(checkBitBox);
 
+        horizontalLayout_4->setStretch(0, 2);
+        horizontalLayout_4->setStretch(1, 5);
 
         verticalLayout_2->addLayout(horizontalLayout_4);
 
@@ -229,6 +245,7 @@ public:
         stopBitBox->setObjectName(QString::fromUtf8("stopBitBox"));
         stopBitBox->setMinimumSize(QSize(95, 0));
         stopBitBox->setMaximumSize(QSize(100, 32));
+        stopBitBox->setFont(font);
         stopBitBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 "QLineEdit, QComboBox {\n"
 "    background-color: #ffffff;\n"
@@ -260,6 +277,8 @@ public:
 
         horizontalLayout_5->addWidget(stopBitBox);
 
+        horizontalLayout_5->setStretch(0, 2);
+        horizontalLayout_5->setStretch(1, 5);
 
         verticalLayout_2->addLayout(horizontalLayout_5);
 

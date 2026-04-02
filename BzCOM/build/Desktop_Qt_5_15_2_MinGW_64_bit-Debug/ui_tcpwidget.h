@@ -77,6 +77,9 @@ public:
         tcpModeBox->addItem(QString());
         tcpModeBox->setObjectName(QString::fromUtf8("tcpModeBox"));
         tcpModeBox->setMaximumSize(QSize(100, 32));
+        QFont font;
+        font.setFamily(QString::fromUtf8("\345\276\256\350\275\257\351\233\205\351\273\221"));
+        tcpModeBox->setFont(font);
         tcpModeBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 " QComboBox {\n"
 "    background-color: #ffffff;\n"
@@ -288,10 +291,10 @@ public:
         label->setText(QCoreApplication::translate("tcpWidget", "\350\277\234\347\250\213\345\234\260\345\235\200", nullptr));
         ipEdit1->setText(QString());
         label_4->setText(QCoreApplication::translate("tcpWidget", "\347\253\257\345\217\243", nullptr));
-        portEdit1->setText(QString());
+        portEdit1->setText(QCoreApplication::translate("tcpWidget", "9999", nullptr));
         label_5->setText(QCoreApplication::translate("tcpWidget", "\346\234\254\345\234\260\345\234\260\345\235\200", nullptr));
         label_6->setText(QCoreApplication::translate("tcpWidget", "\347\253\257\345\217\243", nullptr));
-        portEdit2->setText(QString());
+        portEdit2->setText(QCoreApplication::translate("tcpWidget", "8888", nullptr));
         connectBtn->setText(QCoreApplication::translate("tcpWidget", "\350\277\236\346\216\245", nullptr));
     } // retranslateUi
 

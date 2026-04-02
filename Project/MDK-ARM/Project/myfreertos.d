@@ -1,0 +1,42 @@
+project\myfreertos.o: ..\Core\Src\myFreeRTOS.c
+project\myfreertos.o: ..\Core\Src\myfreertos.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/FreeRTOS.h
+project\myfreertos.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stddef.h
+project\myfreertos.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stdint.h
+project\myfreertos.o: ../Core/Inc/FreeRTOSConfig.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/projdefs.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/portable.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/deprecated_definitions.h
+project\myfreertos.o: ../Mid/FreeRTOS/portable/portmacro.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/mpu_wrappers.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/task.h
+project\myfreertos.o: ../Mid/FreeRTOS/include/list.h
+project\myfreertos.o: ../Core/Inc/main.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
+project\myfreertos.o: ../Core/Inc/stm32f1xx_hal_conf.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h
+project\myfreertos.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h
+project\myfreertos.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
+project\myfreertos.o: ../Drivers/CMSIS/Include/core_cm3.h
+project\myfreertos.o: ../Drivers/CMSIS/Include/cmsis_version.h
+project\myfreertos.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
+project\myfreertos.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
+project\myfreertos.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_exti.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma_ex.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
+project\myfreertos.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+project\myfreertos.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stdio.h
+project\myfreertos.o: ../Core/Inc/usart.h

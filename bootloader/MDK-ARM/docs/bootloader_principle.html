@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STM32F103 双区备份 OTA Bootloader 原理详解</title>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-orange: #d29922;
+            --accent-red: #f85149;
+            --accent-purple: #a371f7;
+            --border-color: #30363d;
+            --code-bg: #1c2128;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* 头部 */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .chip-info {
+            display: inline-flex;
+            gap: 24px;
+            margin-top: 24px;
+            padding: 16px 32px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chip-info span {
+            color: var(--text-secondary);
+        }
+
+        .chip-info strong {
+            color: var(--accent-green);
+        }
+
+        /* 章节 */
+        section {
+            margin-bottom: 64px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 .icon {
+            font-size: 1.4rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            color: var(--accent-blue);
+            margin: 32px 0 16px 0;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+        }
+
+        /* 硬件架构图 */
+        .arch-diagram {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 24px 0;
+        }
+
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .arch-box {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .arch-box:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+        }
+
+        .arch-box.stm32 {
+            border-color: var(--accent-green);
+        }
+
+        .arch-box.storage {
+            border-color: var(--accent-orange);
+        }
+
+        .arch-box .name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .arch-box.stm32 .name { color: var(--accent-green); }
+        .arch-box.storage .name { color: var(--accent-orange); }
+
+        .arch-box .desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .arch-box .pins {
+            font-size: 0.75rem;
+            color: var(--accent-blue);
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: "SF Mono", Consolas, monospace;
+        }
+
+        .arch-arrow {
+            font-size: 2rem;
+            color: var(--accent-blue);
+            animation: arrowPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes arrowPulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* Flash布局 */
+        .flash-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 24px 0;
+        }
+
+        .flash-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .flash-bar {
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .flash-bar.bootloader { width: 25%; background: linear-gradient(90deg, #f85149, #da3633); }
+        .flash-bar.app_run { width: 25%; background: linear-gradient(90deg, #58a6ff, #388bfd); }
+        .flash-bar.app_a { width: 25%; background: linear-gradient(90deg, #3fb950, #238636); }
+        .flash-bar.app_b { width: 25%; background: linear-gradient(90deg, #a371f7, #8957e5); }
+
+        .flash-bar .addr {
+            position: absolute;
+            right: -80px;
+            width: 70px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        .flash-legend {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* 状态机流程 */
+        .flow-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            min-width: 900px;
+        }
+
+        .flow-step {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px 24px;
+            text-align: center;
+            min-width: 180px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            border-color: var(--accent-blue);
+            transform: scale(1.05);
+        }
+
+        .flow-step.active {
+            border-color: var(--accent-green);
+            background: rgba(63, 185, 80, 0.1);
+        }
+
+        .flow-step .num {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-blue);
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .flow-step .name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .flow-step .file {
+            font-size: 0.75rem;
+            color: var(--accent-purple);
+            font-family: monospace;
+        }
+
+        .flow-arrow {
+            font-size: 1.5rem;
+            color: var(--accent-blue);
+            padding: 0 12px;
+            animation: arrowMove 1s ease-in-out infinite;
+        }
+
+        @keyframes arrowMove {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(6px); }
+        }
+
+        /* 双缓冲动画 */
+        .dual-bank-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            margin: 24px 0;
+        }
+
+        .bank-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bank-card.active {
+            border-color: var(--accent-green);
+        }
+
+        .bank-card.active::before {
+            content: "运行中";
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--accent-green);
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .bank-card .title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .bank-card.app-a .title { color: var(--accent-green); }
+        .bank-card.app-b .title { color: var(--accent-purple); }
+
+        .bank-card .status {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .status-item .icon {
+            font-size: 1.2rem;
+        }
+
+        .status-item .label {
+            color: var(--text-secondary);
+        }
+
+        .status-item .value {
+            margin-left: auto;
+            font-weight: 600;
+            font-family: monospace;
+        }
+
+        .status-item .value.valid { color: var(--accent-green); }
+        .status-item .value.invalid { color: var(--accent-red); }
+        .status-item .value.idle { color: var(--text-secondary); }
+
+        /* OTA流程 */
+        .ota-flow {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+        }
+
+        .ota-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .ota-step:last-child {
+            border-bottom: none;
+        }
+
+        .ota-step .step-num {
+            background: var(--accent-blue);
+            color: #fff;
+            min-width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .ota-step .step-content {
+            flex: 1;
+        }
+
+        .ota-step .step-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .ota-step .step-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .ota-step .step-data {
+            margin-top: 12px;
+            padding: 12px 16px;
+            background: var(--code-bg);
+            border-radius: 8px;
+            font-family: "SF Mono", Consolas, monospace;
+            font-size: 0.85rem;
+            color: var(--accent-orange);
+            overflow-x: auto;
+        }
+
+        /* 协议帧 */
+        .protocol-frame {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+        }
+
+        .frame-diagram {
+            display: flex;
+            overflow-x: auto;
+            margin: 24px 0;
+            padding: 16px 0;
+        }
+
+        .frame-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .frame-field .field-data {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-family: monospace;
+            transition: all 0.3s ease;
+        }
+
+        .frame-field:hover .field-data {
+            transform: scale(1.05);
+            border-color: var(--accent-blue);
+        }
+
+        .frame-field.head .field-data {
+            background: rgba(88, 166, 255, 0.2);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        .frame-field.cmd .field-data {
+            background: rgba(63, 185, 80, 0.2);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .frame-field.len .field-data {
+            background: rgba(163, 113, 247, 0.2);
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+        }
+
+        .frame-field.data .field-data {
+            background: rgba(210, 153, 34, 0.2);
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+            min-width: 100px;
+        }
+
+        .frame-field.reserve .field-data {
+            background: rgba(139, 148, 158, 0.2);
+            border-color: var(--text-secondary);
+            color: var(--text-secondary);
+        }
+
+        .frame-field.crc .field-data {
+            background: rgba(248, 81, 73, 0.2);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        .frame-field .field-name {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .frame-field .field-size {
+            font-size: 0.7rem;
+            color: var(--accent-blue);
+            margin-top: 4px;
+        }
+
+        /* 按键流程 */
+        .key-flow {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .key-card {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .key-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .key-card.key1 {
+            border-color: var(--accent-blue);
+        }
+
+        .key-card.key2 {
+            border-color: var(--accent-orange);
+        }
+
+        .key-card .key-name {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .key-card.key1 .key-name { color: var(--accent-blue); }
+        .key-card.key2 .key-name { color: var(--accent-orange); }
+
+        .key-card .mode-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .key-card .flow-list {
+            text-align: left;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .key-card .flow-list li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .key-card .flow-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--accent-blue);
+        }
+
+        /* 外设表格 */
+        .peripheral-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        .peripheral-table th,
+        .peripheral-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .peripheral-table th {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .peripheral-table td {
+            color: var(--text-secondary);
+        }
+
+        .peripheral-table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        .peripheral-table .p-name {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
+        .peripheral-table .p-pin {
+            font-family: monospace;
+            color: var(--accent-orange);
+        }
+
+        /* 模式表格 */
+        .mode-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        .mode-table th,
+        .mode-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .mode-table th {
+            background: var(--bg-secondary);
+        }
+
+        .mode-table .mode-val {
+            font-family: monospace;
+            color: var(--accent-purple);
+        }
+
+        .mode-table .mode-name {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        /* 动画演示区 */
+        .animation-zone {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin: 24px 0;
+            text-align: center;
+        }
+
+        .anim-title {
+            font-size: 1.2rem;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .boot-animation {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 32px;
+            background: var(--bg-primary);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .boot-node {
+            padding: 16px 24px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .boot-node.current {
+            border-color: var(--accent-green);
+            background: rgba(63, 185, 80, 0.2);
+            color: var(--accent-green);
+            transform: scale(1.1);
+        }
+
+        .boot-node.done {
+            border-color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .boot-arrow {
+            color: var(--accent-blue);
+            font-size: 1.2rem;
+        }
+
+        .anim-controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .anim-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .anim-btn.primary {
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .anim-btn.primary:hover {
+            background: #388bfd;
+        }
+
+        .anim-btn.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .anim-btn.secondary:hover {
+            border-color: var(--accent-blue);
+        }
+
+        /* 代码块 */
+        code {
+            font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+            background: var(--code-bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--accent-orange);
+        }
+
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .arch-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dual-bank-demo {
+                grid-template-columns: 1fr;
+            }
+
+            .key-flow {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-steps {
+                flex-direction: column;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>STM32F103 双区备份 OTA Bootloader</h1>
+            <p class="subtitle">基于 STM32CubeMX + Keil uVision 的安全升级方案</p>
+            <div class="chip-info">
+                <span>芯片: <strong>STM32F103C8T6</strong></span>
+                <span>Flash: <strong>64KB</strong></span>
+                <span>SRAM: <strong>20KB</strong></span>
+                <span>时钟: <strong>72MHz</strong></span>
+            </div>
+        </header>
+
+        <!-- 硬件架构 -->
+        <section>
+            <h2><span class="icon">⚡</span>硬件架构</h2>
+            <p>Bootloader 运行在 STM32F103C8T6 上，通过多种外设与外部设备通信，实现灵活的固件升级方案。</p>
+
+            <div class="arch-diagram">
+                <div class="arch-grid">
+                    <div class="arch-box stm32">
+                        <div class="name">STM32F103C8T6</div>
+                        <div class="desc">Cortex-M3 主控</div>
+                        <div class="pins">
+                            USART1 | SPI1 | I2C1<br>
+                            GPIO (KEY/LED)
+                        </div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div class="arch-arrow">⟷</div>
+                        <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">UART 115200bps</div>
+                    </div>
+                    <div class="arch-box">
+                        <div class="name">上位机 (PC)</div>
+                        <div class="desc">OTA 升级控制端</div>
+                        <div class="pins">串口/CAN/TCP</div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-around; margin-top: 32px; padding-top: 32px; border-top: 1px solid var(--border-color);">
+                    <div class="arch-box storage">
+                        <div class="name">W25Q64</div>
+                        <div class="desc">8MB Flash 存储</div>
+                        <div class="pins">SPI1: PA4-PA7</div>
+                    </div>
+                    <div class="arch-box storage">
+                        <div class="name">AT24C64</div>
+                        <div class="desc">64KB EEPROM</div>
+                        <div class="pins">I2C1: PB6-PB7</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 外设配置 -->
+        <section>
+            <h2><span class="icon">🔌</span>外设配置</h2>
+            <table class="peripheral-table">
+                <thead>
+                    <tr>
+                        <th>外设</th>
+                        <th>引脚</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="p-name">USART1</td>
+                        <td class="p-pin">PA9=TX, PA10=RX</td>
+                        <td>与上位机通信，115200bps, 8N1</td>
+                    </tr>
+                    <tr>
+                        <td class="p-name">SPI1</td>
+                        <td class="p-pin">PA4=NSS, PA5=SCK, PA6=MISO, PA7=MOSI</td>
+                        <td>连接 W25Q64 (8MB Flash)</td>
+                    </tr>
+                    <tr>
+                        <td class="p-name">I2C1</td>
+                        <td class="p-pin">PB6=SCL, PB7=SDA</td>
+                        <td>连接 AT24C64 (存储启动模式/分区信息)</td>
+                    </tr>
+                    <tr>
+                        <td class="p-name">GPIO</td>
+                        <td class="p-pin">PB13=KEY1, PB12=KEY2, PA6/7=PB0=LED</td>
+                        <td>按键触发升级模式，LED 状态指示</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Flash 布局 -->
+        <section>
+            <h2><span class="icon">💾</span>Flash 内存布局</h2>
+            <p>64KB Flash 划分为 4 个 16KB 区域，支持双区备份和运行时复制。</p>
+
+            <div class="flash-layout">
+                <div class="flash-row">
+                    <div style="width: 80px; font-weight: 600;">Bootloader</div>
+                    <div class="flash-bar bootloader">Bootloader<span class="addr">0x08000000</span></div>
+                </div>
+                <div class="flash-row">
+                    <div style="width: 80px; font-weight: 600;">APP_RUN</div>
+                    <div class="flash-bar app_run">运行区<span class="addr">0x08004000</span></div>
+                </div>
+                <div class="flash-row">
+                    <div style="width: 80px; font-weight: 600;">APP_A</div>
+                    <div class="flash-bar app_a">固件区 A<span class="addr">0x08008000</span></div>
+                </div>
+                <div class="flash-row">
+                    <div style="width: 80px; font-weight: 600;">APP_B</div>
+                    <div class="flash-bar app_b">固件区 B<span class="addr">0x0800C000</span></div>
+                </div>
+            </div>
+
+            <div class="flash-legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--accent-red);"></div>
+                    <span>Bootloader (16KB)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--accent-blue);"></div>
+                    <span>APP_RUN (16KB) - 运行时复制目标</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--accent-green);"></div>
+                    <span>APP_A (16KB) - 分区 A</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--accent-purple);"></div>
+                    <span>APP_B (16KB) - 分区 B</span>
+                </div>
+            </div>
+
+            <h3>AT24C64 EEPROM 存储</h3>
+            <table class="peripheral-table">
+                <thead>
+                    <tr>
+                        <th>地址</th>
+                        <th>内容</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="p-pin">0x10</td>
+                        <td>启动模式</td>
+                        <td>MODE_BOOT_UPDATE / NO_UPDATE / RESET / UART_IAP / OTA</td>
+                    </tr>
+                    <tr>
+                        <td class="p-pin">0x11-0x12</td>
+                        <td>密钥</td>
+                        <td>必须为 0x5A6B 才生效，防止误操作</td>
+                    </tr>
+                    <tr>
+                        <td class="p-pin">0x13</td>
+                        <td>活跃分区</td>
+                        <td>0xAA = APP_A, 0xBB = APP_B</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 启动模式 -->
+        <section>
+            <h2><span class="icon">🚀</span>启动模式</h2>
+            <table class="mode-table">
+                <thead>
+                    <tr>
+                        <th>模式值</th>
+                        <th>名称</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="mode-val">0x01</td>
+                        <td class="mode-name">MODE_BOOT_UPDATE</td>
+                        <td>W25Q64 中已有固件，执行升级</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-val">0x02</td>
+                        <td class="mode-name">MODE_BOOT_NO_UPDATE</td>
+                        <td>不更新，直接启动</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-val">0x03</td>
+                        <td class="mode-name">MODE_BOOT_RESET</td>
+                        <td>恢复出厂设置</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-val">0x04</td>
+                        <td class="mode-name">MODE_BOOT_UART_IAP</td>
+                        <td>串口 IAP，直接写入目标分区</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-val">0x05</td>
+                        <td class="mode-name">MODE_BOOT_OTA_SELECT</td>
+                        <td>OTA 模式选择（按 KEY1 后的握手阶段）</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-val">0x07</td>
+                        <td class="mode-name">MODE_BOOT_OTA</td>
+                        <td>UART OTA，串口→W25Q64→目标分区</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 启动流程状态机 -->
+        <section>
+            <h2><span class="icon">🔄</span>启动流程状态机</h2>
+            <p>系统复位后按以下顺序执行，完成升级检测、模式选择、固件校验和跳转。</p>
+
+            <div class="flow-container">
+                <div class="flow-steps">
+                    <div class="flow-step" id="step1">
+                        <span class="num">1</span>
+                        <div class="name">check_update</div>
+                        <div class="file">App_bootloader.c</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step" id="step2">
+                        <span class="num">2</span>
+                        <div class="name">check_default</div>
+                        <div class="file">App_bootloader.c</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step" id="step3">
+                        <span class="num">3</span>
+                        <div class="name">update</div>
+                        <div class="file">App_bootloader.c</div>
+                    </div>
+                    <span class="flow-arrow">→</span>
+                    <div class="flow-step" id="step4">
+                        <span class="num">4</span>
+                        <div class="name">copy_and_jump</div>
+                        <div class="file">App_bootloader.c</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="animation-zone">
+                <div class="anim-title">🔮 启动流程动画演示</div>
+                <div class="boot-animation" id="bootAnim">
+                    <div class="boot-node" id="anim1">① 读AT24C64</div>
+                    <span class="boot-arrow">→</span>
+                    <div class="boot-node" id="anim2">② 等待按键</div>
+                    <span class="boot-arrow">→</span>
+                    <div class="boot-node" id="anim3">③ 执行升级</div>
+                    <span class="boot-arrow">→</span>
+                    <div class="boot-node" id="anim4">④ 复制跳转</div>
+                </div>
+                <div class="anim-controls">
+                    <button class="anim-btn primary" onclick="startBootAnim()">▶ 播放动画</button>
+                    <button class="anim-btn secondary" onclick="resetBootAnim()">↺ 重置</button>
+                </div>
+            </div>
+
+            <h3>check_update()</h3>
+            <p>从 AT24C64 读取启动模式，校验密钥 (0x5A6B)，确定活跃分区和目标分区。</p>
+
+            <h3>check_default()</h3>
+            <p>5秒内等待用户按键选择模式，支持 KEY1 (OTA) 和 KEY2 (UART IAP)，带 50ms 消抖。</p>
+
+            <h3>update()</h3>
+            <p>根据模式执行升级：W25Q64 升级、UART IAP 或 OTA 接收。</p>
+
+            <h3>copy_and_jump()</h3>
+            <p>将活跃分区固件复制到 APP_RUN 区域，校验栈顶地址后跳转到应用程序。</p>
+        </section>
+
+        <!-- 双区备份机制 -->
+        <section>
+            <h2><span class="icon">🔐</span>双区备份机制</h2>
+            <p>两个固件分区 (A/B) 互为备份，升级时写入非活跃分区，校验通过后切换。确保升级失败时可回滚。</p>
+
+            <div class="dual-bank-demo">
+                <div class="bank-card app-a active">
+                    <div class="title">
+                        <span>📦</span> APP_A 分区
+                    </div>
+                    <div class="status">
+                        <div class="status-item">
+                            <span class="icon">📍</span>
+                            <span class="label">地址范围</span>
+                            <span class="value">0x08008000</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="icon">✅</span>
+                            <span class="label">固件状态</span>
+                            <span class="value valid">有效</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="icon">🎯</span>
+                            <span class="label">当前角色</span>
+                            <span class="value valid">活跃分区</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bank-card app-b">
+                    <div class="title">
+                        <span>📦</span> APP_B 分区
+                    </div>
+                    <div class="status">
+                        <div class="status-item">
+                            <span class="icon">📍</span>
+                            <span class="label">地址范围</span>
+                            <span class="value">0x0800C000</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="icon">⏳</span>
+                            <span class="label">固件状态</span>
+                            <span class="value idle">空闲</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="icon">📝</span>
+                            <span class="label">当前角色</span>
+                            <span class="value idle">目标分区</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>固件校验</h3>
+            <p>跳转前校验固件有效性：检查栈顶地址必须在 SRAM 范围内 (0x20000000 - 0x20005000)。</p>
+            <pre><code>uint8_t is_valid_firmware(uint32_t addr)
+{
+    uint32_t stack = *(volatile uint32_t *)addr;
+    return (stack >= SRAM_STACK_BASE && stack <= SRAM_MAX);
+}</code></pre>
+        </section>
+
+        <!-- 按键选择流程 -->
+        <section>
+            <h2><span class="icon">🎮</span>按键选择流程</h2>
+            <p>复位后 5 秒内按下按键，决定进入哪种升级模式。</p>
+
+            <div class="key-flow">
+                <div class="key-card key1">
+                    <div class="key-name">KEY1</div>
+                    <div class="mode-name">OTA 模式选择</div>
+                    <ol class="flow-list">
+                        <li>按下 KEY1 (PB13)</li>
+                        <li>进入 OTA_SELECT 模式</li>
+                        <li>等待上位机握手</li>
+                        <li>发送 '1' → UART OTA</li>
+                        <li>发送 '2' → 保留扩展</li>
+                    </ol>
+                </div>
+                <div class="key-card key2">
+                    <div class="key-name">KEY2</div>
+                    <div class="mode-name">UART IAP 模式</div>
+                    <ol class="flow-list">
+                        <li>按下 KEY2 (PB12)</li>
+                        <li>进入 UART_IAP 模式</li>
+                        <li>等待启动字符 '1'</li>
+                        <li>串口接收 bin 数据</li>
+                        <li>直接写入目标分区</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- OTA 协议 -->
+        <section>
+            <h2><span class="icon">📡</span>OTA 通信协议</h2>
+            <p>基于 Modbus CRC16 的自定义协议帧，支持固件分片传输、校验和应答。</p>
+
+            <div class="protocol-frame">
+                <h3 style="margin-bottom: 16px;">协议帧格式</h3>
+                <div class="frame-diagram">
+                    <div class="frame-field head">
+                        <div class="field-data">0x55AA</div>
+                        <div class="field-name">帧头</div>
+                        <div class="field-size">2 字节</div>
+                    </div>
+                    <div class="frame-field cmd">
+                        <div class="field-data">CMD</div>
+                        <div class="field-name">命令码</div>
+                        <div class="field-size">2 字节</div>
+                    </div>
+                    <div class="frame-field len">
+                        <div class="field-data">LEN</div>
+                        <div class="field-name">数据长度</div>
+                        <div class="field-size">2 字节</div>
+                    </div>
+                    <div class="frame-field data">
+                        <div class="field-data">DATA</div>
+                        <div class="field-name">数据区</div>
+                        <div class="field-size">N 字节</div>
+                    </div>
+                    <div class="frame-field reserve">
+                        <div class="field-data">RSV</div>
+                        <div class="field-name">保留</div>
+                        <div class="field-size">4 字节</div>
+                    </div>
+                    <div class="frame-field crc">
+                        <div class="field-data">CRC</div>
+                        <div class="field-name">校验</div>
+                        <div class="field-size">2 字节</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>命令码</h3>
+            <table class="mode-table">
+                <thead>
+                    <tr>
+                        <th>命令</th>
+                        <th>值</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="mode-name">CMD_UPDATE_START</td>
+                        <td class="mode-val">0x0003</td>
+                        <td>升级开始，DATA[0-3] 为固件大小</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-name">CMD_UPDATE_DATA</td>
+                        <td class="mode-val">0x0004</td>
+                        <td>升级数据，DATA[0-3] 为 offset, DATA[4:] 为数据</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-name">CMD_UPDATE_END</td>
+                        <td class="mode-val">0x0005</td>
+                        <td>升级结束</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-name">CMD_ACK</td>
+                        <td class="mode-val">cmd | 0x0080</td>
+                        <td>应答成功</td>
+                    </tr>
+                    <tr>
+                        <td class="mode-name">CMD_NAK</td>
+                        <td class="mode-val">cmd | 0x00FF</td>
+                        <td>应答失败</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- OTA 完整流程 -->
+        <section>
+            <h2><span class="icon">📥</span>OTA 完整流程</h2>
+
+            <div class="ota-flow">
+                <div class="ota-step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-title">按 KEY1 进入 OTA 选择模式</div>
+                        <div class="step-desc">系统输出菜单，等待上位机选择通信方式</div>
+                        <div class="step-data">
+                            OTA_MODE:
+                             1=UART
+                             2=保留
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ota-step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-title">上位机发送 '1' 选择 UART OTA</div>
+                        <div class="step-desc">下位机进入 OTA_Receive()，发送 OTA_START，开始擦除 W25Q64</div>
+                        <div class="step-data">
+                            进入UART_OTA
+                            OTA_START
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ota-step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-title">协议帧传输 (CMD_UPDATE_START)</div>
+                        <div class="step-desc">上位机发送固件大小，下位机回复 ACK</div>
+                        <div class="step-data">
+                            | 0x55AA | 0x0003 | 0x0400 | size[4] | 0x0000 | CRC16 |
+                            ← ACK (0x5583)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ota-step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <div class="step-title">协议帧传输 (CMD_UPDATE_DATA)</div>
+                        <div class="step-desc">分片传输固件数据，每包最大 258 字节，下位机写入 W25Q64</div>
+                        <div class="step-data">
+                            | 0x55AA | 0x0004 | 0xnn04 | offset[4] | data[N] | CRC16 |
+                            ← ACK (0x5584)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ota-step">
+                    <div class="step-num">5</div>
+                    <div class="step-content">
+                        <div class="step-title">传输完成 (CMD_UPDATE_END)</div>
+                        <div class="step-desc">下位机保存元数据，擦除目标分区，复制 W25Q64 → Flash</div>
+                        <div class="step-data">
+                            | 0x55AA | 0x0005 | 0x0000 | 0x0000 | CRC16 |
+                            ← UPDATE_OK 或 INVALID_FW
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ota-step">
+                    <div class="step-num">6</div>
+                    <div class="step-content">
+                        <div class="step-title">分区切换与跳转</div>
+                        <div class="step-desc">校验固件有效后，切换活跃分区到新固件，下次启动运行新固件</div>
+                        <div class="step-data">
+                            AT24C64[0x13] = 0xBB (切换到 APP_B)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 目录结构 -->
+        <section>
+            <h2><span class="icon">📁</span>代码目录结构</h2>
+            <pre><code>MDK-ARM/
+├── 1.bootloader.uvprojx          # Keil 工程文件
+├── startup_stm32f103xb.s         # 启动文件
+│
+├── Core/                         # ⚠️ STM32CubeMX 管理，禁止修改
+│   ├── main.c
+│   ├── stm32f1xx_it.c
+│   ├── stm32f1xx_hal_*.c
+│   └── ...
+│
+├── Interface/                     # 业务逻辑 (可修改)
+│   ├── bootloader.c/h             # Flash 操作、分区切换、跳转
+│   ├── iap.c/h                    # UART IAP 状态机
+│   ├── ota.c/h                    # OTA 升级流程
+│   ├── protocol.c/h               # 协议帧编解码
+│   ├── w25q64.c/h                 # W25Q64 Flash 驱动
+│   ├── at24c64.c/h                # AT24C64 EEPROM 驱动
+│   └── usart.c/h                  # 串口双缓冲驱动
+│
+└── Application/                   # 应用层 (可修改)
+    └── App_bootloader.c/h         # 启动状态机入口</code></pre>
+        </section>
+    </div>
+
+    <script>
+        // 启动动画
+        let animTimer = null;
+
+        function startBootAnim() {
+            if (animTimer) return;
+
+            const steps = ['anim1', 'anim2', 'anim3', 'anim4'];
+            let current = 0;
+
+            function animate() {
+                // 重置所有
+                steps.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.classList.remove('current', 'done');
+                });
+
+                // 当前步骤高亮
+                document.getElementById(steps[current]).classList.add('current');
+
+                // 已完成步骤变暗
+                for (let i = 0; i < current; i++) {
+                    document.getElementById(steps[i]).classList.add('done');
+                }
+
+                current++;
+                if (current < steps.length) {
+                    animTimer = setTimeout(animate, 1500);
+                } else {
+                    steps.forEach(id => {
+                        document.getElementById(id).classList.remove('current');
+                        document.getElementById(id).classList.add('done');
+                    });
+                    animTimer = null;
+                }
+            }
+
+            animate();
+        }
+
+        function resetBootAnim() {
+            if (animTimer) {
+                clearTimeout(animTimer);
+                animTimer = null;
+            }
+            ['anim1', 'anim2', 'anim3', 'anim4'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('current', 'done');
+            });
+        }
+    </script>
+</body>
+</html>
