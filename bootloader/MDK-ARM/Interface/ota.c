@@ -9,11 +9,6 @@
 #include <string.h>
 
 /*============================================================*/
-/* 外部变量（App_bootloader.c）                               */
-/*============================================================*/
-extern uint32_t s_target_bank;
-
-/*============================================================*/
 /* 串口辅助                                                   */
 /*============================================================*/
 static void uart_send_str(const uint8_t *str)
@@ -78,12 +73,10 @@ static void ota_recv_loop(uint32_t *total_size)
             for (uint16_t i = 0; i < len; i++) {
                 if (Protocol_ProcessByte(&proto, buf[i])) {
                     if (handle_frame(&proto.frame, total_size)) {
-                        memset(buf, 0, len);
                         return;
                     }
                 }
             }
-            memset(buf, 0, len);
         }
 
         if (uart_recv_done) break;
@@ -133,26 +126,25 @@ void OTA_Select(void)
     uint16_t len = 0;
     uint32_t start = HAL_GetTick();
 
-    Boot_StartUartIap();
-
-    uart_send_str((const uint8_t *)"OTA_MODE:\r\n  1=UART\r\n  2=保留\r\n");
+    uart_send_str((const uint8_t *)"OTA_MODE:\r\n  1=UART\r\n  2=IAP\r\n");
 
     while (HAL_GetTick() - start < 5000) {
         if (uart_get_data(&buf, &len)) {
             if (len >= 1) {
                 if (buf[0] == '1') {
-                    uart_send_str((const uint8_t *)"进入UART_OTA\r\n");
+                    uart_send_str((const uint8_t *)"-> UART_OTA\r\n");
                     OTA_Receive();
                     return;
                 }
                 if (buf[0] == '2') {
-                    uart_send_str((const uint8_t *)"模式2暂未实现\r\n");
+                    g_boot_mode = MODE_BOOT_UART_IAP;
+                    /* 不在此处发送 "-> UART_IAP" —— do_uart_iap()
+                     * 完成 Flash 擦除和 UART 初始化后才会发送 */
                     return;
                 }
             }
-            memset(buf, 0, len);
         }
         HAL_Delay(10);
     }
-    uart_send_str((const uint8_t *)"OTA_SELECT_TIMEOUT\r\n");
+    uart_send_str((const uint8_t *)"TIMEOUT\r\n");
 }

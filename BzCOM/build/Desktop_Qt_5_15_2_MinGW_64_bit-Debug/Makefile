@@ -33,7 +33,7 @@ IDC           = idc
 IDL           = midl
 ZIP           = zip -r -9
 DEF_FILE      = 
-RES_FILE      = 
+RES_FILE      = BzCOM_resource_res.o
 SED           = $(QMAKE) -install sed
 MOVE          = move
 SUBTARGETS    =  \
@@ -256,7 +256,8 @@ Makefile: ../../BzCOM.pro E:/Software/Qt/5.15.2/mingw81_64/mkspecs/win32-g++/qma
 		E:/Software/Qt/5.15.2/mingw81_64/lib/Qt5Network.prl \
 		E:/Software/Qt/5.15.2/mingw81_64/lib/Qt5Core.prl \
 		E:/Software/Qt/5.15.2/mingw81_64/lib/qtmain.prl \
-		E:/Software/Qt/5.15.2/mingw81_64/mkspecs/features/build_pass.prf
+		E:/Software/Qt/5.15.2/mingw81_64/mkspecs/features/build_pass.prf \
+		../../res/image.qrc
 	$(QMAKE) -o Makefile ..\..\BzCOM.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
 E:/Software/Qt/5.15.2/mingw81_64/mkspecs/features/spec_pre.prf:
 E:/Software/Qt/5.15.2/mingw81_64/mkspecs/qdevice.pri:
@@ -445,6 +446,7 @@ E:/Software/Qt/5.15.2/mingw81_64/lib/Qt5Network.prl:
 E:/Software/Qt/5.15.2/mingw81_64/lib/Qt5Core.prl:
 E:/Software/Qt/5.15.2/mingw81_64/lib/qtmain.prl:
 E:/Software/Qt/5.15.2/mingw81_64/mkspecs/features/build_pass.prf:
+../../res/image.qrc:
 qmake: FORCE
 	@$(QMAKE) -o Makefile ..\..\BzCOM.pro -spec win32-g++ "CONFIG+=debug" "CONFIG+=qml_debug"
 

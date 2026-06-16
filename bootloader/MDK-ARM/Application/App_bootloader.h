@@ -44,12 +44,17 @@ void App_bootloader_update(void);
 void App_bootloader_copy_and_jump(void);
 
 /* OTA 模块共享接口（定义在 App_bootloader.c）*/
-extern uint8_t  is_valid_firmware(uint32_t addr);
-extern void     w25q64_save_meta(uint32_t size);
-extern void     copy_w25q64_to_flash(uint32_t size);
-extern void     switch_bank(void);
+extern BootMode_t g_boot_mode;
+extern uint32_t   s_target_bank;
+extern uint8_t    is_valid_firmware(uint32_t addr);
+extern void       w25q64_save_meta(uint32_t size);
+extern void       copy_w25q64_to_flash(uint32_t size);
+extern void       switch_bank(void);
 
 /* OTA 模块接口（定义在 ota.c） */
 extern void OTA_Select(void);
+
+/* IAP 模块接口（定义在 App_bootloader.c） */
+extern void do_uart_iap(void);
 
 #endif

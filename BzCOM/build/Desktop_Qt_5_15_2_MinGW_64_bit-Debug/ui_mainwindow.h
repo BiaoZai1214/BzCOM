@@ -66,7 +66,6 @@ public:
         horizontalLayout->setObjectName(QString::fromUtf8("horizontalLayout"));
         textBrowser = new QTextBrowser(centralwidget);
         textBrowser->setObjectName(QString::fromUtf8("textBrowser"));
-        textBrowser->setWordWrapMode(QTextOption::WrapAnywhere);
 
         horizontalLayout->addWidget(textBrowser);
 
@@ -165,9 +164,10 @@ public:
         checkBox = new QComboBox(centralwidget);
         checkBox->addItem(QString());
         checkBox->addItem(QString());
+        checkBox->addItem(QString());
+        checkBox->addItem(QString());
         checkBox->setObjectName(QString::fromUtf8("checkBox"));
         checkBox->setFont(font);
-        checkBox->setEditable(false);
         checkBox->setStyleSheet(QString::fromUtf8("/* \347\273\237\344\270\200\346\211\200\346\234\211\350\276\223\345\205\245\346\241\206\357\274\210QLineEdit + QComboBox\357\274\211\347\232\204\346\240\267\345\274\217 */\n"
 " QComboBox {\n"
 "    background-color: #ffffff;\n"
@@ -196,6 +196,7 @@ public:
 "    text-align: center;\n"
 "    alignment: AlignCenter;\n"
 "}"));
+        checkBox->setEditable(false);
 
         horizontalLayout_3->addWidget(checkBox);
 
@@ -356,7 +357,9 @@ public:
         saveLog->setText(QCoreApplication::translate("MainWindow", "\344\277\235\345\255\230\346\227\245\345\277\227", nullptr));
         hexBtn->setText(QCoreApplication::translate("MainWindow", "ASCII", nullptr));
         checkBox->setItemText(0, QCoreApplication::translate("MainWindow", "     \346\227\240\346\240\241\351\252\214", nullptr));
-        checkBox->setItemText(1, QCoreApplication::translate("MainWindow", "\346\240\241\351\252\214\345\222\214", nullptr));
+        checkBox->setItemText(1, QCoreApplication::translate("MainWindow", "     \346\240\241\351\252\214\345\222\214", nullptr));
+        checkBox->setItemText(2, QCoreApplication::translate("MainWindow", "     \345\274\202\346\210\226\346\240\241\351\252\214", nullptr));
+        checkBox->setItemText(3, QCoreApplication::translate("MainWindow", "     CRC16", nullptr));
 
         selectFile->setText(QCoreApplication::translate("MainWindow", "\351\200\211\346\213\251\346\226\207\344\273\266", nullptr));
         ProtocolBox->setItemText(0, QCoreApplication::translate("MainWindow", "     None", nullptr));

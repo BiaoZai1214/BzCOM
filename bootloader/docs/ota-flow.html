@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTA Bootloader 流程演示</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #050810;
+    --surface: #0a0f1a;
+    --border: #1a2a3a;
+    --cyan: #00d4ff;
+    --green: #00ff88;
+    --amber: #ffb700;
+    --red: #ff3366;
+    --purple: #a855f7;
+    --text: #c8d8e8;
+    --dim: #4a5a6a;
+    --glow-cyan: 0 0 8px #00d4ff80, 0 0 20px #00d4ff40;
+    --glow-green: 0 0 8px #00ff8880, 0 0 20px #00ff8840;
+    --glow-amber: 0 0 8px #ffb70080, 0 0 20px #ffb70040;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* 背景网格 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* 标题区 */
+  .header {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .header h1 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2.4rem;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 8px;
+  }
+
+  .header .subtitle {
+    font-size: 0.95rem;
+    color: var(--dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  .chip-label {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 4px 16px;
+    border: 1px solid var(--amber);
+    color: var(--amber);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-shadow: var(--glow-amber);
+  }
+
+  /* ===== 三大模块 ===== */
+  .module {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .module::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.6;
+  }
+
+  .module-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--dim);
+    padding: 16px 24px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .module-title::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .module-body { padding: 30px 24px; }
+
+  /* ===== 1. Flash 分区图 ===== */
+  .flash-map {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 20px;
+  }
+
+  .flash-block {
+    flex: 1;
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    transition: all 0.4s;
+  }
+
+  .flash-block.active {
+    border-color: var(--green);
+    box-shadow: inset 0 0 20px #00ff8810;
+  }
+
+  .flash-block.active::after {
+    content: 'ACTIVE';
+    position: absolute;
+    top: 8px; right: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--green);
+    text-shadow: var(--glow-green);
+    letter-spacing: 0.1em;
+  }
+
+  .flash-block.boot {
+    border-color: var(--cyan);
+    box-shadow: inset 0 0 20px #00d4ff10;
+  }
+
+  .flash-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+
+  .flash-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .flash-addr {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--dim);
+  }
+
+  .flash-size-bar {
+    height: 4px;
+    background: var(--border);
+    margin-top: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .flash-fill {
+    height: 100%;
+    background: var(--green);
+    width: 0%;
+    transition: width 1.5s ease-out;
+    box-shadow: var(--glow-green);
+  }
+
+  .flash-block.boot .flash-fill { background: var(--cyan); box-shadow: var(--glow-cyan); }
+
+  .active-bank-toggle {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    align-items: center;
+  }
+
+  .active-bank-toggle span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+  }
+
+  .bank-btn {
+    padding: 5px 14px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    letter-spacing: 0.1em;
+    transition: all 0.3s;
+  }
+
+  .bank-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .bank-btn.active {
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: var(--glow-green);
+  }
+
+  /* ===== 2. 状态机 ===== */
+  .state-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+    padding: 10px 0;
+  }
+
+  .state-node {
+    width: 130px;
+    text-align: center;
+    position: relative;
+  }
+
+  .state-circle {
+    width: 80px;
+    height: 80px;
+    border: 2px solid var(--border);
+    margin: 0 auto 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--surface);
+    transition: all 0.5s;
+    position: relative;
+  }
+
+  .state-circle .num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--dim);
+    margin-bottom: 2px;
+  }
+
+  .state-circle .name {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+
+  .state-node.active .state-circle {
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    background: #00d4ff10;
+  }
+
+  .state-node.active .state-circle .name { color: var(--cyan); }
+
+  .state-node.done .state-circle {
+    border-color: var(--green);
+    box-shadow: var(--glow-green);
+  }
+
+  .state-node.done .state-circle::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid var(--green);
+    opacity: 0.3;
+  }
+
+  .state-node.error .state-circle {
+    border-color: var(--red);
+    box-shadow: 0 0 8px #ff336680;
+    background: #ff336610;
+  }
+
+  .state-node.error .state-circle .name { color: var(--red); }
+
+  /* 连接箭头 */
+  .state-arrow {
+    width: 40px;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .state-arrow::after {
+    content: '';
+    position: absolute;
+    right: -1px; top: -4px;
+    border: 5px solid transparent;
+    border-left-color: var(--border);
+  }
+
+  .state-arrow.fired {
+    background: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    animation: arrowPulse 0.6s ease-out;
+  }
+
+  .state-arrow.fired::after { border-left-color: var(--cyan); }
+
+  @keyframes arrowPulse {
+    0% { opacity: 0; transform: scaleX(0); }
+    50% { opacity: 1; }
+    100% { opacity: 1; transform: scaleX(1); }
+  }
+
+  /* 状态描述 */
+  .state-desc {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--dim);
+    margin-top: 20px;
+    min-height: 24px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .state-desc span { color: var(--cyan); text-shadow: var(--glow-cyan); }
+
+  /* 控制按钮 */
+  .controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-btn {
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    cursor: pointer;
+    letter-spacing: 0.15em;
+    transition: all 0.3s;
+    text-transform: uppercase;
+  }
+
+  .ctrl-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .ctrl-btn.primary {
+    border-color: var(--cyan);
+    color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+  .ctrl-btn.primary:hover { background: #00d4ff10; }
+  .ctrl-btn.danger { border-color: var(--red); color: var(--red); }
+  .ctrl-btn.danger:hover { background: #ff336610; }
+
+  /* ===== 3. OTA 数据流 ===== */
+  .dataflow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  .flow-node {
+    text-align: center;
+    position: relative;
+    padding: 0 16px;
+  }
+
+  .flow-icon {
+    width: 64px;
+    height: 64px;
+    border: 2px solid var(--border);
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    transition: all 0.4s;
+  }
+
+  .flow-icon svg { width: 28px; height: 28px; stroke: var(--dim); fill: none; stroke-width: 1.5; transition: stroke 0.4s; }
+  .flow-icon.cyan { border-color: var(--cyan); }
+  .flow-icon.cyan svg { stroke: var(--cyan); }
+  .flow-icon.green { border-color: var(--green); }
+  .flow-icon.green svg { stroke: var(--green); }
+  .flow-icon.amber { border-color: var(--amber); }
+  .flow-icon.amber svg { stroke: var(--amber); }
+  .flow-icon.purple { border-color: var(--purple); }
+  .flow-icon.purple svg { stroke: var(--purple); }
+
+  .flow-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+
+  .flow-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .flow-arrow {
+    width: 60px;
+    height: 2px;
+    background: var(--border);
+    position: relative;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .flow-arrow::after {
+    content: '';
+    position: absolute;
+    right: -1px; top: -4px;
+    border: 5px solid transparent;
+    border-left-color: var(--border);
+  }
+
+  /* 数据包动画 */
+  .packet {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: var(--cyan);
+    border-radius: 50%;
+    box-shadow: var(--glow-cyan);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* 日志面板 */
+  .log-panel {
+    margin-top: 30px;
+    border: 1px solid var(--border);
+    background: #030608;
+    max-height: 160px;
+    overflow-y: auto;
+  }
+
+  .log-panel::-webkit-scrollbar { width: 4px; }
+  .log-panel::-webkit-scrollbar-track { background: transparent; }
+  .log-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .log-header {
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 0.2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    background: #030608;
+  }
+
+  .log-line {
+    padding: 3px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    border-bottom: 1px solid #0a0f1a;
+    display: flex;
+    gap: 12px;
+    opacity: 0;
+    animation: logFadeIn 0.3s forwards;
+  }
+
+  @keyframes logFadeIn {
+    to { opacity: 1; }
+  }
+
+  .log-line .t { color: var(--dim); min-width: 70px; }
+  .log-line .lbl { color: var(--cyan); min-width: 20px; }
+  .log-line .msg { color: var(--text); }
+  .log-line.ok .msg { color: var(--green); }
+  .log-line.err .msg { color: var(--red); }
+  .log-line.warn .msg { color: var(--amber); }
+
+  /* 进度指示 */
+  .progress-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 24px;
+  }
+
+  .progress-item {
+    flex: 1;
+    border: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+
+  .progress-item-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--cyan);
+    width: 0%;
+    transition: width 0.5s ease-out;
+    box-shadow: var(--glow-cyan);
+  }
+
+  .progress-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  /* 端点装饰 */
+  .dot-pattern {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: var(--border);
+    border-radius: 50%;
+  }
+
+  .module { position: relative; }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .state-flow { gap: 4px; }
+    .state-arrow { width: 20px; }
+    .flash-map { flex-direction: column; }
+    .flow-arrow { width: 30px; }
+    .header h1 { font-size: 1.6rem; }
+  }
+
+  /* 扫描线效果 */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+
+  .scanline {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan) 50%, transparent);
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 100;
+    animation: scanline 8s linear infinite;
+  }
+
+  /* 脉冲点 */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .pulse-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  .pulse-dot.green { background: var(--green); box-shadow: var(--glow-green); }
+  .pulse-dot.cyan { background: var(--cyan); box-shadow: var(--glow-cyan); }
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="container">
+
+  <!-- 标题 -->
+  <div class="header">
+    <h1>OTA BOOTLOADER</h1>
+    <div class="subtitle">Dual-Bank Backup · STM32F103C8T6</div>
+    <div class="chip-label">STM32F103C8T6 · 72MHz · 64KB Flash</div>
+  </div>
+
+  <!-- 模块1: Flash分区 -->
+  <div class="module">
+    <div class="module-title">FLASH MEMORY MAP</div>
+    <div class="module-body">
+      <div class="flash-map">
+        <div class="flash-block boot" id="flash-boot">
+          <div class="flash-label">REGION 01</div>
+          <div class="flash-name">Bootloader</div>
+          <div class="flash-addr">0x08000000 - 0x08003FFF</div>
+          <div class="flash-size-bar"><div class="flash-fill" style="width:100%"></div></div>
+        </div>
+        <div class="flash-block" id="flash-a">
+          <div class="flash-label">REGION 02</div>
+          <div class="flash-name">APP_A</div>
+          <div class="flash-addr">0x08008000 - 0x0800BFFF</div>
+          <div class="flash-size-bar"><div class="flash-fill" id="fill-a"></div></div>
+        </div>
+        <div class="flash-block active" id="flash-b">
+          <div class="flash-label">REGION 03</div>
+          <div class="flash-name">APP_B</div>
+          <div class="flash-addr">0x0800C000 - 0x0800FFFF</div>
+          <div class="flash-size-bar"><div class="flash-fill" id="fill-b" style="width:65%"></div></div>
+        </div>
+      </div>
+      <div class="active-bank-toggle">
+        <span>ACTIVE BANK:</span>
+        <button class="bank-btn" id="btn-a" onclick="setActiveBank('a')">APP_A</button>
+        <button class="bank-btn active" id="btn-b" onclick="setActiveBank('b')">APP_B</button>
+        <span style="margin-left:auto; font-size:0.65rem; color:var(--dim);">AT24C64 [0x13]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模块2: 状态机 -->
+  <div class="module">
+    <div class="module-title">BOOT STATE MACHINE</div>
+    <div class="module-body">
+      <div class="state-flow">
+        <div class="state-node done" id="s0">
+          <div class="state-circle">
+            <div class="num">S0</div>
+            <div class="name">INIT</div>
+          </div>
+        </div>
+        <div class="state-arrow" id="a0"></div>
+        <div class="state-node active" id="s1">
+          <div class="state-circle">
+            <div class="num">S1</div>
+            <div class="name">CHECK</div>
+          </div>
+        </div>
+        <div class="state-arrow" id="a1"></div>
+        <div class="state-node" id="s2">
+          <div class="state-circle">
+            <div class="num">S2</div>
+            <div class="name">WAIT</div>
+          </div>
+        </div>
+        <div class="state-arrow" id="a2"></div>
+        <div class="state-node" id="s3">
+          <div class="state-circle">
+            <div class="num">S3</div>
+            <div class="name">UPDATE</div>
+          </div>
+        </div>
+        <div class="state-arrow" id="a3"></div>
+        <div class="state-node" id="s4">
+          <div class="state-circle">
+            <div class="num">S4</div>
+            <div class="name">COPY</div>
+          </div>
+        </div>
+        <div class="state-arrow" id="a4"></div>
+        <div class="state-node" id="s5">
+          <div class="state-circle">
+            <div class="num">S5</div>
+            <div class="name">JUMP</div>
+          </div>
+        </div>
+      </div>
+      <div class="state-desc" id="state-desc">
+        <span>CHECK</span> — 读取 AT24C64 [0x10] 确定启动模式
+      </div>
+      <div class="controls">
+        <button class="ctrl-btn" onclick="stepState()">下一步</button>
+        <button class="ctrl-btn primary" onclick="runAuto()">自动运行</button>
+        <button class="ctrl-btn" onclick="resetState()">重置</button>
+        <button class="ctrl-btn danger" onclick="triggerError()">模拟错误</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模块3: OTA数据流 -->
+  <div class="module">
+    <div class="module-title">OTA DATA FLOW</div>
+    <div class="module-body">
+      <div class="dataflow">
+        <div class="flow-node">
+          <div class="flow-icon cyan">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div class="flow-label">UART</div>
+          <div class="flow-name">PC Host</div>
+        </div>
+        <div class="flow-arrow" id="fa0"></div>
+        <div class="flow-node">
+          <div class="flow-icon amber">
+            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          </div>
+          <div class="flow-label">115200</div>
+          <div class="flow-name">USART1</div>
+        </div>
+        <div class="flow-arrow" id="fa1"></div>
+        <div class="flow-node">
+          <div class="flow-icon purple">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="flow-label">SPI1</div>
+          <div class="flow-name">W25Q64</div>
+        </div>
+        <div class="flow-arrow" id="fa2"></div>
+        <div class="flow-node">
+          <div class="flow-icon green">
+            <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="2" x2="9" y2="4"/><line x1="15" y1="2" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="22"/><line x1="15" y1="20" x2="15" y2="22"/><line x1="2" y1="9" x2="4" y2="9"/><line x1="2" y1="15" x2="4" y2="15"/><line x1="20" y1="9" x2="22" y2="9"/><line x1="20" y1="15" x2="22" y2="15"/></svg>
+          </div>
+          <div class="flow-label">I2C1</div>
+          <div class="flow-name">AT24C64</div>
+        </div>
+        <div class="flow-arrow" id="fa3"></div>
+        <div class="flow-node">
+          <div class="flow-icon cyan">
+            <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0-6v6m18-6v6"/></svg>
+          </div>
+          <div class="flow-label">FLASH</div>
+          <div class="flow-name">Dual-Bank</div>
+        </div>
+      </div>
+
+      <div class="progress-row">
+        <div class="progress-item">
+          <div class="progress-item-label">UART RECEIVED</div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-uart" style="background:var(--amber)"></div></div>
+          <div class="progress-value" id="val-uart">0 KB / 16 KB</div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-item-label">W25Q64 WRITTEN</div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-w25" style="background:var(--purple)"></div></div>
+          <div class="progress-value" id="val-w25">0 KB</div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-item-label">FLASH PROGRAM</div>
+          <div class="progress-bar"><div class="progress-fill" id="prog-flash" style="background:var(--green)"></div></div>
+          <div class="progress-value" id="val-flash">0 KB</div>
+        </div>
+      </div>
+
+      <!-- 日志 -->
+      <div class="log-panel" id="log-panel">
+        <div class="log-header">
+          <span>SERIAL LOG</span>
+          <span id="log-count">0 entries</span>
+        </div>
+        <div id="log-body"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ===== Flash 分区切换 =====
+  function setActiveBank(bank) {
+    document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + bank).classList.add('active');
+    document.querySelectorAll('.flash-block').forEach(b => b.classList.remove('active'));
+    document.getElementById('flash-' + bank).classList.add('active');
+    addLog(bank === 'a' ? 'W' : 'W', bank === 'a' ? 'Switch active bank → APP_A' : 'Switch active bank → APP_B', 'ok');
+  }
+
+  // ===== 状态机 =====
+  const states = [
+    { id: 's0', next: 'a0', desc: '<span>INIT</span> — 系统初始化，配置时钟/GPIO/USART', time: 500 },
+    { id: 's1', next: 'a1', desc: '<span>CHECK</span> — 读取 AT24C64 [0x10] 确定启动模式', time: 600 },
+    { id: 's2', next: 'a2', desc: '<span>WAIT</span> — 等待 3 秒按键选择 (KEY1=OTA / KEY2=UART IAP)', time: 800 },
+    { id: 's3', next: 'a3', desc: '<span>UPDATE</span> — 接收固件 → 写入 W25Q64 → 校验', time: 1200 },
+    { id: 's4', next: 'a4', desc: '<span>COPY</span> — 从 W25Q64 复制到目标 APP 分区', time: 1000 },
+    { id: 's5', next: null, desc: '<span>JUMP</span> — 校验栈顶地址，安全跳转至 APP_RUN', time: 700 },
+  ];
+
+  let currentState = 1; // 从 CHECK 开始
+  let autoTimer = null;
+
+  function setState(idx, cls) {
+    states.forEach((s, i) => {
+      const el = document.getElementById(s.id);
+      el.classList.remove('active', 'done', 'error');
+      if (i < idx) el.classList.add('done');
+      else if (i === idx) el.classList.add(cls || 'active');
+    });
+    document.getElementById('state-desc').innerHTML = states[idx].desc;
+  }
+
+  function fireArrow(fromIdx) {
+    const arrow = states[fromIdx].next;
+    if (!arrow) return;
+    const el = document.getElementById(arrow);
+    el.classList.remove('fired');
+    void el.offsetWidth;
+    el.classList.add('fired');
+    setTimeout(() => el.classList.remove('fired'), 800);
+  }
+
+  function stepState() {
+    if (currentState >= states.length) return;
+    fireArrow(currentState - 1);
+    setState(currentState, currentState === 5 ? 'done' : 'active');
+    addLog('>', states[currentState].desc.replace(/<[^>]+>/g, ''), 'ok');
+    currentState++;
+  }
+
+  function resetState() {
+    clearTimeout(autoTimer);
+    currentState = 1;
+    setState(1);
+    addLog('R', 'State machine reset', 'warn');
+  }
+
+  function triggerError() {
+    clearTimeout(autoTimer);
+    document.getElementById('s3').classList.remove('active');
+    document.getElementById('s3').classList.add('error');
+    addLog('E', 'ERROR: Flash write timeout!', 'err');
+  }
+
+  function runAuto() {
+    resetState();
+    let i = 1;
+    function next() {
+      if (i >= states.length) return;
+      fireArrow(i - 1);
+      setState(i, i === 5 ? 'done' : 'active');
+      addLog('>', states[i].desc.replace(/<[^>]+>/g, ''), i === 5 ? 'ok' : '');
+      i++;
+      if (i < states.length) {
+        autoTimer = setTimeout(next, states[i - 1].time);
+      } else {
+        setTimeout(() => addLog('✓', 'Boot complete — jumping to APP', 'ok'), 600);
+      }
+    }
+    autoTimer = setTimeout(next, 600);
+  }
+
+  // ===== OTA 数据流动画 =====
+  let otaRunning = false;
+  let otaInterval = null;
+  let uartProg = 0, w25Prog = 0, flashProg = 0;
+  const totalSize = 16384; // 16KB
+
+  function updateOtaProgress() {
+    const pu = document.getElementById('prog-uart');
+    const pw = document.getElementById('prog-w25');
+    const pf = document.getElementById('prog-flash');
+    pu.style.width = (uartProg / totalSize * 100) + '%';
+    pw.style.width = (w25Prog / totalSize * 100) + '%';
+    pf.style.width = (flashProg / totalSize * 100) + '%';
+    document.getElementById('val-uart').textContent = Math.round(uartProg) + ' B / ' + totalSize + ' B';
+    document.getElementById('val-w25').textContent = Math.round(w25Prog) + ' B';
+    document.getElementById('val-flash').textContent = Math.round(flashProg) + ' B';
+  }
+
+  function animatePacket(from, to, color) {
+    const el = document.createElement('div');
+    el.className = 'packet';
+    el.style.background = color;
+    el.style.boxShadow = `0 0 8px ${color}80, 0 0 20px ${color}40`;
+    document.body.appendChild(el);
+
+    const fRect = from.getBoundingClientRect();
+    const tRect = to.getBoundingClientRect();
+    const startX = fRect.left + fRect.width / 2;
+    const startY = fRect.top + fRect.height / 2;
+    const endX = tRect.left + tRect.width / 2;
+    const endY = tRect.top + tRect.height / 2;
+
+    el.style.left = startX + 'px';
+    el.style.top = startY + 'px';
+
+    const duration = 400;
+    const start = performance.now();
+
+    function anim(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      el.style.left = (startX + (endX - startX) * ease) + 'px';
+      el.style.top = (startY + (endY - startY) * ease) + 'px';
+      if (t < 1) requestAnimationFrame(anim);
+      else el.remove();
+    }
+    requestAnimationFrame(anim);
+
+    // 箭头闪烁
+    const arrowId = from === document.querySelector('.flow-icon.cyan') ? 'fa0'
+      : from === document.querySelector('.flow-icon.amber') ? 'fa1'
+      : from === document.querySelector('.flow-icon.purple') ? 'fa2' : 'fa3';
+    const arrow = document.getElementById(arrowId);
+    if (arrow) {
+      arrow.style.background = color;
+      arrow.style.boxShadow = `0 0 8px ${color}80`;
+      arrow.style.borderLeftColor = color;
+      arrow.querySelector && (arrow.style.background = color);
+      setTimeout(() => {
+        arrow.style.background = '';
+        arrow.style.boxShadow = '';
+        arrow.style.borderLeftColor = '';
+      }, 500);
+    }
+  }
+
+  function runOtaFlow() {
+    if (otaRunning) return;
+    otaRunning = true;
+    resetOta();
+
+    const icons = [
+      document.querySelectorAll('.flow-icon')[0],
+      document.querySelectorAll('.flow-icon')[1],
+      document.querySelectorAll('.flow-icon')[2],
+      document.querySelectorAll('.flow-icon')[3],
+      document.querySelectorAll('.flow-icon')[4],
+    ];
+    const colors = ['#ffb700', '#00d4ff', '#a855f7', '#00ff88', '#00d4ff'];
+
+    let step = 0;
+    const packets = [48, 96, 128, 192, 256, 320, 384, 448, 512, 640, 768, 896, 1024, 1280, 1536, 1792, 2048, 2560, 3072, 3584, 4096, 5120, 6144, 7168, 8192, 10240, 12288, 14336, 16384];
+
+    otaInterval = setInterval(() => {
+      if (step >= packets.length) {
+        clearInterval(otaInterval);
+        addLog('✓', 'OTA transfer complete — 16384 bytes verified', 'ok');
+        addLog('>', 'Switching active bank...', '');
+        setActiveBank(document.getElementById('btn-a').classList.contains('active') ? 'b' : 'a');
+        setTimeout(() => addLog('✓', 'Boot sequence complete', 'ok'), 800);
+        otaRunning = false;
+        return;
+      }
+
+      const p = packets[Math.min(step, packets.length - 1)];
+      const iconIdx = step % 5;
+      const fromIcon = icons[iconIdx];
+      const toIcon = icons[(iconIdx + 1) % 5];
+
+      animatePacket(fromIcon, toIcon, colors[iconIdx]);
+
+      uartProg = Math.min(p, totalSize);
+      w25Prog = Math.min(p * 0.95, totalSize);
+      flashProg = Math.min(p * 0.9, totalSize);
+      updateOtaProgress();
+
+      if (step % 3 === 0) {
+        addLog('>', `Receiving packet #${step} — ${p} bytes received`, '');
+      }
+
+      step++;
+    }, 180);
+  }
+
+  function resetOta() {
+    clearInterval(otaInterval);
+    uartProg = w25Prog = flashProg = 0;
+    updateOtaProgress();
+    otaRunning = false;
+  }
+
+  // ===== 日志 =====
+  let logCount = 0;
+  function addLog(label, msg, type) {
+    const body = document.getElementById('log-body');
+    const now = new Date();
+    const t = now.toTimeString().slice(0, 8);
+    const line = document.createElement('div');
+    line.className = 'log-line ' + (type || '');
+    line.innerHTML = `<span class="t">${t}</span><span class="lbl">[${label}]</span><span class="msg">${msg}</span>`;
+    body.appendChild(line);
+    document.getElementById('log-panel').scrollTop = document.getElementById('log-panel').scrollHeight;
+    document.getElementById('log-count').textContent = ++logCount + ' entries';
+  }
+
+  // 绑定 OTA 按钮
+  document.querySelectorAll('.ctrl-btn, .bank-btn').forEach(btn => {
+    if (btn.textContent.includes('下一步') || btn.textContent.includes('自动运行') || btn.textContent.includes('重置') || btn.textContent.includes('模拟错误')) return;
+  });
+
+  // 给进度条加上点击运行OTA的功能
+  document.querySelectorAll('.progress-item').forEach(item => {
+    item.style.cursor = 'pointer';
+    item.addEventListener('click', runOtaFlow);
+  });
+
+  // 初始日志
+  setTimeout(() => addLog('i', 'System ready — STM32F103C8T6 Dual-Bank OTA', 'ok'), 300);
+  setTimeout(() => addLog('>', 'Waiting for OTA trigger or user input...', ''), 800);
+</script>
+</body>
+</html>

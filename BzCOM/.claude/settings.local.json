@@ -4,7 +4,15 @@
       "Bash(find /e/Code/QT/BzCOM/BzCOM -name README* -o -name .cursorrules -o -name copilot-instructions.md)",
       "Bash(find /e/Code/QT/BzCOM/BzCOM -name *test*)",
       "Bash(mingw32-make clean:*)",
-      "Bash(qmake BzCOM.pro)"
+      "Bash(qmake BzCOM.pro)",
+      "Bash(mv *.h *.cpp src/)",
+      "Bash(mv *.ui forms/)",
+      "Bash(mv image.qrc bz.ico res/)",
+      "Bash(rm -f bmsdialog.cpp)",
+      "Bash(rm -f *.cpp *.h *.ui bz.jpg bmsdialog.cpp)",
+      "Bash(ls *.pro *.md)",
+      "Bash(cmd.exe /c \"del /Q *.cpp *.h *.ui bz.jpg bmsdialog.cpp 2>nul\")",
+      "Bash(ls *.cpp *.h *.ui)"
     ]
   }
 }

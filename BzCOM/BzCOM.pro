@@ -2,31 +2,46 @@ QT += widgets serialport network
 
 CONFIG += c++11
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+INCLUDEPATH += src
 
 SOURCES += \
-    main.cpp \
-    mainwindow.cpp \
-    tcpwidget.cpp \
-    uartwidget.cpp \
-    otaprotocol.cpp \
-    otacontroller.cpp
+    src/main.cpp \
+    src/logpanel.cpp \
+    src/mainwindow.cpp \
+    src/tcpwidget.cpp \
+    src/tcpclientwidget.cpp \
+    src/tcpserverwidget.cpp \
+    src/udpwidget.cpp \
+    src/uartwidget.cpp \
+    src/canwidget.cpp \
+    src/otaprotocol.cpp \
+    src/otacontroller.cpp \
+    src/checksumutil.cpp
 
 HEADERS += \
-    mainwindow.h \
-    tcpwidget.h \
-    uartwidget.h \
-    otaprotocol.h \
-    otacontroller.h
+    src/comwidget.h \
+    src/logpanel.h \
+    src/mainwindow.h \
+    src/tcpwidget.h \
+    src/tcpclientwidget.h \
+    src/tcpserverwidget.h \
+    src/udpwidget.h \
+    src/uartwidget.h \
+    src/canwidget.h \
+    src/otaprotocol.h \
+    src/otacontroller.h \
+    src/checksumutil.h
 
 FORMS += \
-    mainwindow.ui \
-    tcpwidget.ui \
-    uartwidget.ui
+    forms/mainwindow.ui \
+    forms/uartwidget.ui \
+    forms/canwidget.ui \
+    forms/tcpwidget.ui \
+    forms/tcpclientwidget.ui \
+    forms/tcpserverwidget.ui \
+    forms/udpwidget.ui
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+RESOURCES += \
+    res/image.qrc
+
+RC_ICONS = res/bz.ico

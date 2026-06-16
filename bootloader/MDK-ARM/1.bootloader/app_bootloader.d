@@ -31,13 +31,12 @@
 1.bootloader\app_bootloader.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 1.bootloader\app_bootloader.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 1.bootloader\app_bootloader.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
-1.bootloader\app_bootloader.o: ../Core/Inc/usart.h
-1.bootloader\app_bootloader.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stdio.h
 1.bootloader\app_bootloader.o: ./Interface/w25q64.h
 1.bootloader\app_bootloader.o: ../Core/Inc/spi.h
 1.bootloader\app_bootloader.o: ./Interface/w25q64_ins.h
 1.bootloader\app_bootloader.o: ./Interface/bootloader.h
+1.bootloader\app_bootloader.o: ../Core/Inc/usart.h
+1.bootloader\app_bootloader.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stdio.h
 1.bootloader\app_bootloader.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stdlib.h
 1.bootloader\app_bootloader.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\string.h
-1.bootloader\app_bootloader.o: ./Interface/iap.h
 1.bootloader\app_bootloader.o: ./Interface/ota.h

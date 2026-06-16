@@ -34,13 +34,12 @@
 /* 超时常量 */
 #define IAP_IDLE_TIMEOUT    2000    /* 空闲超时 (ms) */
 #define IAP_TOTAL_TIMEOUT   10000   /* 总超时 (ms) */
-#define IAP_START_CHAR      '1'     /* IAP 启动握手字符 */
 
 /* 公共接口 */
 uint8_t Boot_JumpToApp(uint32_t addr);
-void    Boot_EraseFlash(uint32_t addr, uint16_t pages);
-void    Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size);
-void    Flash_WriteBuffer(uint32_t addr, uint8_t *data, uint32_t len);
+uint8_t Boot_EraseFlash(uint32_t addr, uint16_t pages);
+void   Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size);
+uint8_t Flash_WriteBuffer(uint32_t addr, uint8_t *data, uint32_t len);
 uint32_t Boot_GetActiveBank(void);
 void    Boot_SetActiveBank(uint32_t addr);
 void    Boot_StartUartIap(void);

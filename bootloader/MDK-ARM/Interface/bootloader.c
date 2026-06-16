@@ -1,13 +1,7 @@
 #include "bootloader.h"
 #include "at24c64.h"
 
-// # UART IAP 外部变量 
-extern UART_DoubleBuffTypeDef uart_double_buff;
-extern volatile uint8_t uart_recv_done;
-extern volatile uint8_t uart_error_flag;
-extern volatile uint32_t last_rec_time;
-
-/* 分区管理 */                    
+/* 分区管理 */
 uint32_t Boot_GetActiveBank(void)
 {
     uint8_t flag = AT24C64_R_Byte(ADDR_ACTIVE_BANK);
@@ -21,7 +15,7 @@ void Boot_SetActiveBank(uint32_t addr)
 }
 
 /* Flash 操作 */
-void Boot_EraseFlash(uint32_t addr, uint16_t pages)
+uint8_t Boot_EraseFlash(uint32_t addr, uint16_t pages)
 {
     HAL_FLASH_Unlock();
     FLASH_EraseInitTypeDef erase = {
@@ -31,8 +25,9 @@ void Boot_EraseFlash(uint32_t addr, uint16_t pages)
         .NbPages   = pages
     };
     uint32_t err;
-    HAL_FLASHEx_Erase(&erase, &err);
+    HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &err);
     HAL_FLASH_Lock();
+    return (status == HAL_OK) ? 0 : 1;
 }
 
 void Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size)
@@ -46,24 +41,32 @@ void Boot_CopyFlash(uint32_t src, uint32_t dst, uint32_t size)
         .NbPages   = pages
     };
     uint32_t err;
-    HAL_FLASHEx_Erase(&erase, &err);
+    if (HAL_FLASHEx_Erase(&erase, &err) != HAL_OK) {
+        HAL_FLASH_Lock();
+        return;
+    }
 
     Flash_WriteBuffer(dst, (uint8_t *)src, size);
     HAL_FLASH_Lock();
 }
 
-void Flash_WriteBuffer(uint32_t addr, uint8_t *data, uint32_t len)
+uint8_t Flash_WriteBuffer(uint32_t addr, uint8_t *data, uint32_t len)
 {
     for (uint32_t i = 0; i < len; i += 2) {
         uint16_t halfword = data[i] | ((uint16_t)data[i + 1] << 8);
-        HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, addr + i, halfword);
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, addr + i, halfword) != HAL_OK) {
+            return 1;
+        }
     }
+    return 0;
 }
 
 /* UART IAP */
 void Boot_StartUartIap(void)
 {
-    /* 清空串口脏数据 */
+    /* 中止可能正在进行的接收，确保 HAL RxState 回到 READY */
+    HAL_UART_AbortReceive_IT(&huart1);
+
     __HAL_UART_FLUSH_DRREGISTER(&huart1);
     __HAL_UART_CLEAR_OREFLAG(&huart1);
     __HAL_UART_CLEAR_FEFLAG(&huart1);
@@ -74,11 +77,11 @@ void Boot_StartUartIap(void)
     uart_error_flag  = 0;
     last_rec_time    = HAL_GetTick();
 
-    /* 初始化双缓冲 */
-    uart_double_buff.rx_buff = uart_double_buff.buff1;
-    uart_double_buff.rx_len  = 0;
+    uart_rx_buff.rx_buff   = uart_rx_buff.buff1;
+    uart_rx_buff.data_buff = uart_rx_buff.buff2;
+    uart_rx_buff.rx_len    = 0;
 
-    HAL_UARTEx_ReceiveToIdle_IT(&huart1, uart_double_buff.rx_buff, BUFF_SIZE);
+    HAL_UARTEx_ReceiveToIdle_IT(&huart1, uart_rx_buff.rx_buff, BUFF_SIZE);
 }
 
 /* 安全跳转 */
@@ -99,6 +102,7 @@ uint8_t Boot_JumpToApp(uint32_t app_addr)
     }
 
     /* 关闭外设 */
+    HAL_UART_DeInit(&huart1);
     NVIC_DisableIRQ(EXTI9_5_IRQn);
     NVIC_DisableIRQ(USART1_IRQn);
     SysTick->CTRL = 0;

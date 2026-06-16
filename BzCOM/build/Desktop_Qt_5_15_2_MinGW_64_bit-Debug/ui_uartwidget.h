@@ -68,6 +68,12 @@ public:
         bandRateBox = new QComboBox(uartWidget);
         bandRateBox->addItem(QString());
         bandRateBox->addItem(QString());
+        bandRateBox->addItem(QString());
+        bandRateBox->addItem(QString());
+        bandRateBox->addItem(QString());
+        bandRateBox->addItem(QString());
+        bandRateBox->addItem(QString());
+        bandRateBox->addItem(QString());
         bandRateBox->setObjectName(QString::fromUtf8("bandRateBox"));
         QSizePolicy sizePolicy1(QSizePolicy::Fixed, QSizePolicy::Fixed);
         sizePolicy1.setHorizontalStretch(0);
@@ -368,8 +374,14 @@ public:
     {
         uartWidget->setWindowTitle(QCoreApplication::translate("uartWidget", "Form", nullptr));
         label_2->setText(QCoreApplication::translate("uartWidget", "\346\263\242\347\211\271\347\216\207", nullptr));
-        bandRateBox->setItemText(0, QCoreApplication::translate("uartWidget", "115200", nullptr));
-        bandRateBox->setItemText(1, QCoreApplication::translate("uartWidget", "9600", nullptr));
+        bandRateBox->setItemText(0, QCoreApplication::translate("uartWidget", "921600", nullptr));
+        bandRateBox->setItemText(1, QCoreApplication::translate("uartWidget", "460800", nullptr));
+        bandRateBox->setItemText(2, QCoreApplication::translate("uartWidget", "230400", nullptr));
+        bandRateBox->setItemText(3, QCoreApplication::translate("uartWidget", "115200", nullptr));
+        bandRateBox->setItemText(4, QCoreApplication::translate("uartWidget", "57600", nullptr));
+        bandRateBox->setItemText(5, QCoreApplication::translate("uartWidget", "38400", nullptr));
+        bandRateBox->setItemText(6, QCoreApplication::translate("uartWidget", "19200", nullptr));
+        bandRateBox->setItemText(7, QCoreApplication::translate("uartWidget", "9600", nullptr));
 
         label_3->setText(QCoreApplication::translate("uartWidget", "\346\225\260\346\215\256\344\275\215", nullptr));
         dataBitBox->setItemText(0, QCoreApplication::translate("uartWidget", "8", nullptr));

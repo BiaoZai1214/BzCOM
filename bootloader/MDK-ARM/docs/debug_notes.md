@@ -121,9 +121,22 @@ if (pin == GPIO_PIN_SET && key_state == 1)
 
 ---
 
+## 错误4：双缓冲 HAL 状态不一致导致 Key1→2 IAP 失败
+
+### 问题
+`Boot_StartUartIap()` 中的 `HAL_UARTEx_ReceiveToIdle_IT` 调用被 HAL 静默拒绝（RxState == BUSY_RX），
+导致 HAL 内部 `pRxBuffPtr` 与双缓冲 `rx_buff` 指向不同缓冲区，Flash 写入垃圾数据。
+
+### 修复
+简化为单缓冲（`UART_RxBuffTypeDef`），`Boot_StartUartIap()` 先 `HAL_UART_AbortReceive_IT` 再启动接收。
+OTA/IAP 场景 Flash 写比 UART 收快 4-8 倍且 CPU 停顿，单缓冲完全够用。
+
+---
+
 ## 教训总结
 
-1. **双缓冲设计**：一个缓冲区接收，一个缓冲区处理，避免竞争
-2. **HAL库符号检查**：自定义宏前先搜索是否与 HAL/CMSIS 冲突
-3. **调试输出**：`printf` 会增加延迟，可能导致数据丢失，调试完后删除
-4. **IAP 超时设置**：空闲超时要大于发送间隔，本次设为 5 秒
+1. **OTA/IAP 不需要双缓冲**：Flash 写 CPU 停顿期间无 ISR 并发，单缓冲更简单可靠
+2. **HAL `_IT` 函数可能被静默拒绝**：调用前确保 `RxState == READY`，或先 `AbortReceive`
+3. **HAL库符号检查**：自定义宏前先搜索是否与 HAL/CMSIS 冲突
+4. **调试输出**：`printf` 会增加延迟，可能导致数据丢失，调试完后删除
+5. **IAP 超时设置**：空闲超时要大于发送间隔，本次设为 2 秒

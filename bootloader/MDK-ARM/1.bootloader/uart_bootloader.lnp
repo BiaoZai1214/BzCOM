@@ -26,7 +26,6 @@
 "1.bootloader\bootloader.o"
 "1.bootloader\at24c64.o"
 "1.bootloader\w25q64.o"
-"1.bootloader\iap.o"
 "1.bootloader\ota.o"
 "1.bootloader\protocol.o"
 "1.bootloader\app_bootloader.o"

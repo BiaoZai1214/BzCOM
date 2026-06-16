@@ -101,7 +101,7 @@ void Task1(void *pvParam)
 void Task2(void *pvParam)
 {
     for(;;){
-		HAL_GPIO_TogglePin(LED_G_GPIO_Port,LED_G_Pin);
+		
         vTaskDelay(2000);
     }
 }

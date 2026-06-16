@@ -18,7 +18,6 @@ MDK-ARM/
 ├── startup_stm32f103xb.s   # 启动文件
 ├── Interface/               # 业务逻辑
 │   ├── bootloader.c/h     # Flash读写、分区切换、跳转
-│   ├── iap.c/h             # UART IAP 状态机
 │   ├── ota.c/h             # OTA 升级
 │   ├── w25q64.c/h          # W25Q64 Flash
 │   └── at24c64.c/h         # AT24C64 EEPROM
@@ -71,8 +70,6 @@ Keil uVision 打开 `.uvprojx`，按 **F7** 构建，`.bin` 自动生成到 `1.b
 - `Boot_JumpToApp(addr)` - 安全跳转（校验栈顶）
 - `Boot_EraseFlash/CopyFlash` - Flash 操作
 - `Boot_GetActiveBank/SetActiveBank` - 分区切换
-
-**iap.c**: `IAP_Start()` / `IAP_Process()` 返回 1=完成 / `IAP_IsDone()` / `IAP_GetReceivedLen()`
 
 **ota.c**: `OTA_Receive()` - 串口→W25Q64→Flash 分区
 

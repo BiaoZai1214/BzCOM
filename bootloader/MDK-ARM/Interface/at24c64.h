@@ -3,7 +3,6 @@
 
 /* 头文件 */
 #include "i2c.h"
-#include "usart.h"
 
 /* 宏定义 */
 #define AT24C64_ADDR_W 		0xA0

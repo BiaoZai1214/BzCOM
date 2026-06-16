@@ -1,5 +1,6 @@
 # Qt build output
 build/
+dist/
 .qtcreator/
 *.pro.user*
 *.autosave

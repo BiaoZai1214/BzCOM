@@ -3,8 +3,8 @@
  * @brief Bootloader 启动流程状态机
  */
 #include "app_bootloader.h"
-#include "iap.h"
 #include "ota.h"
+#include "usart.h"
 
 
 
@@ -39,6 +39,11 @@ static BootMode_t wait_for_key(void)
     uint32_t start = HAL_GetTick();
 
     while (HAL_GetTick() - start < KEY_WAIT_MS) {
+        /* UART收到数据 → IAP裸数据直写 */
+        if (uart_rx_buff.rx_len > 0) {
+            return MODE_BOOT_UART_IAP;
+        }
+
         /* KEY1 → OTA模式选择 */
         if (HAL_GPIO_ReadPin(KEY1_GPIO_Port, KEY1_Pin) == GPIO_PIN_SET) {
             uint32_t tick = HAL_GetTick();
@@ -99,7 +104,7 @@ void copy_w25q64_to_flash(uint32_t size)
     while (copied < size) {
         uint16_t len = (size - copied >= 256) ? 256 : (size - copied);
         W25Q64_ReadData(W25Q64_FW_OFFSET + copied, buf, len);
-        Flash_WriteBuffer(s_target_bank + copied, buf, len);
+        if (Flash_WriteBuffer(s_target_bank + copied, buf, len) != 0) break;
         copied += len;
     }
     HAL_FLASH_Lock();
@@ -117,15 +122,50 @@ void switch_bank(void)
 /*============================================================*/
 
 /* UART IAP: 串口 → 直接写Flash */
-static void do_uart_iap(void)
+void do_uart_iap(void)
 {
-    Boot_EraseFlash(s_target_bank, 8);
-    IAP_Start(s_target_bank);
-    while (!IAP_Process()) {}
+    char dbg[32];
+    if (Boot_EraseFlash(s_target_bank,
+            (FLASH_APP_SIZE + FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE) != 0) {
+        return;
+    }
+    Boot_StartUartIap();
+
+    /* Flash 擦除和 UART 初始化完成后才发送就绪信号，
+     * 确保上位机发送数据时设备已准备好接收 */
+    HAL_UART_Transmit(&huart1, (uint8_t *)"-> UART_IAP\r\n", 13, 100);
+
+    uint32_t written = 0;
+    uint32_t last_tick = HAL_GetTick();
+
+    while (written < FLASH_APP_SIZE) {
+        uint8_t *buf;
+        uint16_t len;
+        if (uart_get_data(&buf, &len)) {
+            if (written + len <= FLASH_APP_SIZE) {
+                HAL_FLASH_Unlock();
+                if (Flash_WriteBuffer(s_target_bank + written, buf, len) != 0) {
+                    HAL_FLASH_Lock();
+                    break;
+                }
+                HAL_FLASH_Lock();
+                written += len;
+            }
+            last_tick = HAL_GetTick();
+        }
+        if (written > 0 && HAL_GetTick() - last_tick > IAP_IDLE_TIMEOUT) break;
+        if (HAL_GetTick() - last_tick > IAP_TOTAL_TIMEOUT) break;
+    }
     HAL_FLASH_Lock();
 
-    if (uart_recv_done && is_valid_firmware(s_target_bank)) {
+    int n = sprintf(dbg, "DBG:%lu\r\n", written);
+    HAL_UART_Transmit(&huart1, (uint8_t *)dbg, n, 100);
+
+    if (written >= APP_SIZE_MIN && is_valid_firmware(s_target_bank)) {
         switch_bank();
+        HAL_UART_Transmit(&huart1, (uint8_t *)"UPDATE_OK\r\n", 11, 100);
+    } else {
+        HAL_UART_Transmit(&huart1, (uint8_t *)"UPDATE_FAIL\r\n", 13, 100);
     }
 }
 
@@ -135,7 +175,8 @@ static void do_w25q64_upgrade(void)
     uint32_t size = w25q64_read_size();
     if (size == 0) return;
 
-    Boot_EraseFlash(s_target_bank, 8);
+    if (Boot_EraseFlash(s_target_bank,
+            (FLASH_APP_SIZE + FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE) != 0) return;
     copy_w25q64_to_flash(size);
 
     if (is_valid_firmware(s_target_bank)) {
@@ -209,6 +250,7 @@ void App_bootloader_update(void)
             break;
         case MODE_BOOT_OTA_SELECT:
             OTA_Select();
+            if (g_boot_mode == MODE_BOOT_UART_IAP) do_uart_iap();
             break;
         case MODE_BOOT_OTA:
             OTA_Receive();

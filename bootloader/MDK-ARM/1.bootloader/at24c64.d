@@ -30,5 +30,3 @@
 1.bootloader\at24c64.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 1.bootloader\at24c64.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 1.bootloader\at24c64.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
-1.bootloader\at24c64.o: ../Core/Inc/usart.h
-1.bootloader\at24c64.o: E:\Software\Keil MDK\ARM\arm5_compiler\Bin\..\include\stdio.h

@@ -25,11 +25,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout" stretch="5,2">
         <item>
-         <widget class="QTextBrowser" name="textBrowser">
-          <property name="wordWrapMode">
-           <enum>QTextOption::WrapAnywhere</enum>
-          </property>
-         </widget>
+         <widget class="QTextBrowser" name="textBrowser"/>
         </item>
         <item>
          <widget class="QTabWidget" name="tabWidget"/>
@@ -135,9 +131,6 @@ QPushButton:pressed {
                 <pointsize>-1</pointsize>
                </font>
               </property>
-              <property name="editable">
-               <bool>false</bool>
-              </property>
               <property name="styleSheet">
                <string notr="true">/* 统一所有输入框（QLineEdit + QComboBox）的样式 */
  QComboBox {
@@ -167,6 +160,9 @@ QComboBox QAbstractItemView {
     alignment: AlignCenter;
 }</string>
               </property>
+              <property name="editable">
+               <bool>false</bool>
+              </property>
               <item>
                <property name="text">
                 <string>     无校验</string>
@@ -175,6 +171,16 @@ QComboBox QAbstractItemView {
               <item>
                <property name="text">
                 <string>校验和</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>异或校验</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>CRC16</string>
                </property>
               </item>
              </widget>
