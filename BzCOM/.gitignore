@@ -27,5 +27,13 @@ Makefile*
 # Bootloader
 bootloader/
 
+# qmake generated
+.qmake.stash
+*_resource.rc
+object_script.*
+
+# Deploy output
+BzCOM_deploy/
+
 # Base project
 Base/

@@ -1,0 +1,4 @@
+# Release 包（不上传仓库，用 GitHub Releases 发布）
+BzCOM_Release.zip
+BzCOM_Release/
+BzCOM_deploy/
