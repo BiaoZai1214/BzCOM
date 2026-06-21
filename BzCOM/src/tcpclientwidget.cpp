@@ -53,12 +53,14 @@ void tcpclientWidget::sendData(const QByteArray &data) {
 
 void tcpclientWidget::disconnectDevice() {
     zapSocket(m_socket);
+    ui->connectBtn->setEnabled(true);
     ui->connectBtn->setText(tr("连接"));
     ComWidget::updateButtonState(ui->connectBtn, false);
     setControlsEnabled(true);
 }
 
 void tcpclientWidget::onConnected(void) {
+    ui->connectBtn->setEnabled(true);
     ui->connectBtn->setText(tr("断开"));
     ComWidget::updateButtonState(ui->connectBtn, true);
     setControlsEnabled(false);
@@ -66,6 +68,7 @@ void tcpclientWidget::onConnected(void) {
 }
 
 void tcpclientWidget::onDisconnected(void) {
+    ui->connectBtn->setEnabled(true);
     ui->connectBtn->setText(tr("连接"));
     ComWidget::updateButtonState(ui->connectBtn, false);
     setControlsEnabled(true);
@@ -76,6 +79,7 @@ void tcpclientWidget::onError(QAbstractSocket::SocketError) {
     QString err = m_socket ? m_socket->errorString() : tr("连接失败");
     emit systemMessage(tr("[错误] %1").arg(err));
     zapSocket(m_socket);
+    ui->connectBtn->setEnabled(true);
     ui->connectBtn->setText(tr("连接"));
     ComWidget::updateButtonState(ui->connectBtn, false);
     setControlsEnabled(true);
