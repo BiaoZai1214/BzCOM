@@ -8,8 +8,6 @@ dist/
 # Compiled files
 *.o
 *.obj
-*.exe
-*.dll
 *.a
 *.lib
 
